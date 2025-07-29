@@ -119,9 +119,21 @@ function RouletteRegistrationBlock() {
               Is Telegram WebApp: {debugInfo.isTelegramWebApp.toString()}<br/>
               Has User: {debugInfo.hasUser.toString()}<br/>
               Has InitData: {debugInfo.hasInitData.toString()}<br/>
+              Is Development: {debugInfo.isDevelopment.toString()}<br/>
+              Has Test Params: {debugInfo.hasTestParams.toString()}<br/>
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
               URL Params: {debugInfo.urlParams}<br/>
+              <br/>
+              <strong>Test URLs:</strong><br/>
+              <a href="?test_telegram=true&test_user_id=123456789&test_user_name=Test%20User" 
+                 style={{ color: 'blue', textDecoration: 'underline' }}>
+                Test with Telegram data
+              </a><br/>
+              <a href="?test_telegram=true&test_user_id=987654321&test_user_name=Another%20User" 
+                 style={{ color: 'blue', textDecoration: 'underline' }}>
+                Test with different user
+              </a><br/>
               <button 
                 onClick={() => {
                   const newInfo = telegramUtils.getDebugInfo();

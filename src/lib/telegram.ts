@@ -155,12 +155,21 @@ export const telegramUtils = {
       (window.location.search.includes('tgWebAppData') || 
        window.location.search.includes('tgWebAppVersion'));
     
-    const isTelegram = hasTelegramObject || hasTelegramParams;
+    // В development режиме добавляем возможность тестирования
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const hasTestParam = typeof window !== 'undefined' && 
+      window.location.search.includes('test_telegram=true');
+    
+    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam);
+    
     console.log('Is Telegram WebApp:', isTelegram, {
       hasTelegramObject,
       hasTelegramParams,
+      hasTestParam,
+      isDevelopment,
       search: window.location.search
     });
+    
     return isTelegram;
   },
 
@@ -191,6 +200,26 @@ export const telegramUtils = {
     return null;
   },
 
+  // Получаем тестовые данные пользователя для development
+  getTestUserData(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const testUserId = urlParams.get('test_user_id');
+    const testUserName = urlParams.get('test_user_name') || 'Test User';
+    
+    if (testUserId) {
+      return {
+        id: parseInt(testUserId),
+        first_name: testUserName,
+        username: 'test_user',
+        photo_url: 'https://t.me/i/userpic/320/test.jpg'
+      };
+    }
+    
+    return null;
+  },
+
   // Получаем данные пользователя из Telegram
   getUser(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
     // Сначала пробуем получить из объекта Telegram
@@ -205,6 +234,13 @@ export const telegramUtils = {
     if (userFromUrl) {
       console.log('Telegram user data from URL:', userFromUrl);
       return userFromUrl;
+    }
+    
+    // В development режиме пробуем тестовые данные
+    const testUser = this.getTestUserData();
+    if (testUser) {
+      console.log('Test user data:', testUser);
+      return testUser;
     }
     
     console.log('No Telegram user data found');
@@ -237,6 +273,15 @@ export const telegramUtils = {
       }
     }
     
+    // В development режиме возвращаем тестовые данные
+    if (process.env.NODE_ENV === 'development') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('test_telegram') === 'true') {
+        console.log('Using test initData');
+        return 'test_init_data_for_development';
+      }
+    }
+    
     console.log('Cannot get initData: not in Telegram WebApp');
     return '';
   },
@@ -249,11 +294,17 @@ export const telegramUtils = {
     userData: any;
     initData: string;
     urlParams: string;
+    isDevelopment: boolean;
+    hasTestParams: boolean;
   } {
     const isTelegram = this.isTelegramWebApp();
     const user = this.getUser();
     const initData = this.getInitData();
     const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const hasTestParams = typeof window !== 'undefined' && 
+      (window.location.search.includes('test_telegram=true') || 
+       window.location.search.includes('test_user_id='));
     
     return {
       isTelegramWebApp: isTelegram,
@@ -261,7 +312,9 @@ export const telegramUtils = {
       hasInitData: !!initData,
       userData: user,
       initData: initData,
-      urlParams: urlParams
+      urlParams: urlParams,
+      isDevelopment: isDevelopment,
+      hasTestParams: hasTestParams
     };
   },
 
