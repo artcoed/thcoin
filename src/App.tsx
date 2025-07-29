@@ -8,6 +8,7 @@ import { queryClient } from "./lib/react-query";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { fetchUserByTelegram } from "./store/slices/userSlice";
 import { telegramUtils } from "./lib/telegram";
+import { i18n } from "./lib/i18n";
 import MainPage from "./components/MainPage";
 import RouletteRegistrationBlock from "./components/RouletteRegistrationBlock";
 import Futures from "./components/Futures";
@@ -20,6 +21,11 @@ function AppContent() {
   const { currentPage } = useAppContext();
   const dispatch = useAppDispatch();
   const { user, isRegistered, loading } = useAppSelector(state => state.user);
+
+  // Инициализируем локализацию при загрузке приложения
+  useEffect(() => {
+    i18n.init();
+  }, []);
 
   // Проверяем пользователя при загрузке приложения
   useEffect(() => {

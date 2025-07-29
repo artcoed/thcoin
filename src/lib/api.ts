@@ -104,5 +104,10 @@ export const apiClient = {
   // Авторизация через Telegram
   async authTelegram(auth: TelegramAuth): Promise<ApiResponse<{ user: User }>> {
     return api.post('authTelegram', { json: auth }).json();
-  }
+  },
+
+  // Получить локализацию с бекенда
+  async getLocale(locale: 'ru' | 'en' = 'ru', botId: number = 1) {
+    return api.post('getLocale', { json: { botId, locale } }).json();
+  },
 }; 

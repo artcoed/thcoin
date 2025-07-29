@@ -130,14 +130,14 @@ declare global {
         readTextFromClipboard: (callback?: (data: string) => void) => void;
         requestWriteAccess: (callback?: (access: boolean) => void) => void;
         requestContact: (callback?: (contact: boolean) => void) => void;
-                 invokeCustomMethod: (method: string, params: any, callback?: (result: any) => void) => void;
-         invokeCustomMethodUnsafe: (method: string, params: any, callback?: (result: any) => void) => void;
-         getCustomMethod: (method: string, callback?: (result: any) => void) => void;
-         getCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
-         setCustomMethod: (method: string, callback?: (result: any) => void) => void;
-         setCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
-         deleteCustomMethod: (method: string, callback?: (result: any) => void) => void;
-         deleteCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+        invokeCustomMethod: (method: string, params: any, callback?: (result: any) => void) => void;
+        invokeCustomMethodUnsafe: (method: string, params: any, callback?: (result: any) => void) => void;
+        getCustomMethod: (method: string, callback?: (result: any) => void) => void;
+        getCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+        setCustomMethod: (method: string, callback?: (result: any) => void) => void;
+        setCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+        deleteCustomMethod: (method: string, callback?: (result: any) => void) => void;
+        deleteCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
       };
     };
   }
@@ -147,36 +147,75 @@ declare global {
 export const telegramUtils = {
   // Проверяем, запущено ли приложение в Telegram
   isTelegramWebApp(): boolean {
-    return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
+    const isTelegram = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
+    console.log('Is Telegram WebApp:', isTelegram);
+    return isTelegram;
   },
 
   // Получаем данные пользователя из Telegram
   getUser(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
     if (!this.isTelegramWebApp()) {
+      console.log('Not in Telegram WebApp');
       return null;
     }
-    return window.Telegram!.WebApp.initDataUnsafe.user || null;
+    
+    const user = window.Telegram!.WebApp.initDataUnsafe.user;
+    console.log('Telegram user data:', user);
+    return user || null;
   },
 
   // Получаем telegramId пользователя
   getTelegramId(): string | null {
     const user = this.getUser();
-    return user ? user.id.toString() : null;
+    const telegramId = user ? user.id.toString() : null;
+    console.log('Telegram ID:', telegramId);
+    return telegramId;
   },
 
   // Получаем initData для авторизации
   getInitData(): string {
     if (!this.isTelegramWebApp()) {
+      console.log('Cannot get initData: not in Telegram WebApp');
       return '';
     }
-    return window.Telegram!.WebApp.initData;
+    const initData = window.Telegram!.WebApp.initData;
+    console.log('InitData available:', !!initData);
+    return initData;
+  },
+
+  // Получаем детальную информацию о состоянии Telegram WebApp
+  getDebugInfo(): {
+    isTelegramWebApp: boolean;
+    hasUser: boolean;
+    hasInitData: boolean;
+    userData: any;
+    initData: string;
+  } {
+    const isTelegram = this.isTelegramWebApp();
+    const user = isTelegram ? window.Telegram!.WebApp.initDataUnsafe.user : null;
+    const initData = isTelegram ? window.Telegram!.WebApp.initData : '';
+    
+    return {
+      isTelegramWebApp: isTelegram,
+      hasUser: !!user,
+      hasInitData: !!initData,
+      userData: user,
+      initData: initData
+    };
   },
 
   // Инициализируем WebApp
   initWebApp(): void {
     if (this.isTelegramWebApp()) {
-      window.Telegram!.WebApp.ready();
-      window.Telegram!.WebApp.expand();
+      try {
+        window.Telegram!.WebApp.ready();
+        window.Telegram!.WebApp.expand();
+        console.log('Telegram WebApp initialized successfully');
+      } catch (error) {
+        console.error('Error initializing Telegram WebApp:', error);
+      }
+    } else {
+      console.log('Cannot initialize: not in Telegram WebApp');
     }
   },
 
