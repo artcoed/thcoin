@@ -106,8 +106,10 @@ function RouletteRegistrationBlock() {
               </div>
           )}
 
-          {/* Отладочная информация (только в development) */}
-          {process.env.NODE_ENV === 'development' && debugInfo && (
+          {/* Отладочная информация (в development или с debug параметром) */}
+          {(process.env.NODE_ENV === 'development' || 
+            (typeof window !== 'undefined' && window.location.search.includes('debug=true'))) && 
+            debugInfo && (
             <div style={{ 
               background: '#f0f0f0', 
               padding: '10px', 
@@ -122,6 +124,7 @@ function RouletteRegistrationBlock() {
               Is Development: {debugInfo.isDevelopment.toString()}<br/>
               Has Test Params: {debugInfo.hasTestParams.toString()}<br/>
               Has Force Test: {debugInfo.hasForceTest.toString()}<br/>
+              Has Debug Mode: {debugInfo.hasDebugMode.toString()}<br/>
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
               URL Params: {debugInfo.urlParams}<br/>
@@ -134,6 +137,10 @@ function RouletteRegistrationBlock() {
               <a href="?force_telegram=true&test_user_id=123456789&test_user_name=Test%20User" 
                  style={{ color: 'red', textDecoration: 'underline' }}>
                 Force Telegram mode (any env)
+              </a><br/>
+              <a href="?debug=true&test_user_id=123456789&test_user_name=Test%20User" 
+                 style={{ color: 'green', textDecoration: 'underline' }}>
+                Debug mode (any env)
               </a><br/>
               <a href="?force_telegram=true&test_user_id=987654321&test_user_name=Another%20User" 
                  style={{ color: 'red', textDecoration: 'underline' }}>

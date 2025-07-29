@@ -160,8 +160,12 @@ export const telegramUtils = {
       import.meta.env.DEV || 
       import.meta.env.MODE === 'development' ||
       process.env.NODE_ENV === 'development' ||
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
+      (typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('localhost') ||
+        window.location.hostname.includes('127.0.0.1')
+      ));
     
     // Проверяем тестовые параметры
     const hasTestParam = typeof window !== 'undefined' && 
@@ -171,16 +175,27 @@ export const telegramUtils = {
     const hasForceTest = typeof window !== 'undefined' && 
       window.location.search.includes('force_telegram=true');
     
-    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest;
+    // Проверяем отладочный режим
+    const hasDebugMode = typeof window !== 'undefined' && 
+      window.location.search.includes('debug=true');
+    
+    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest || hasDebugMode;
     
     console.log('Is Telegram WebApp:', isTelegram, {
       hasTelegramObject,
       hasTelegramParams,
       hasTestParam,
       hasForceTest,
+      hasDebugMode,
       isDevelopment,
       hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
-      search: typeof window !== 'undefined' ? window.location.search : ''
+      port: typeof window !== 'undefined' ? window.location.port : 'unknown',
+      search: typeof window !== 'undefined' ? window.location.search : '',
+      importMetaEnv: {
+        DEV: import.meta.env.DEV,
+        MODE: import.meta.env.MODE,
+        NODE_ENV: process.env.NODE_ENV
+      }
     });
     
     return isTelegram;
@@ -221,17 +236,22 @@ export const telegramUtils = {
     const testUserId = urlParams.get('test_user_id');
     const testUserName = urlParams.get('test_user_name') || 'Test User';
     
-    // Работаем в любом режиме, если есть принудительный флаг
+    // Работаем в любом режиме, если есть принудительный флаг или отладочный режим
     const isDevelopment = 
       import.meta.env.DEV || 
       import.meta.env.MODE === 'development' ||
       process.env.NODE_ENV === 'development' ||
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
+      (typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('localhost') ||
+        window.location.hostname.includes('127.0.0.1')
+      ));
     
     const hasForceTest = urlParams.get('force_telegram') === 'true';
+    const hasDebugMode = urlParams.get('debug') === 'true';
     
-    if ((isDevelopment || hasForceTest) && testUserId) {
+    if ((isDevelopment || hasForceTest || hasDebugMode) && testUserId) {
       return {
         id: parseInt(testUserId),
         first_name: testUserName,
@@ -299,7 +319,9 @@ export const telegramUtils = {
     // Возвращаем тестовые данные в любом режиме с принудительным флагом
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('force_telegram') === 'true' || urlParams.get('test_telegram') === 'true') {
+      if (urlParams.get('force_telegram') === 'true' || 
+          urlParams.get('test_telegram') === 'true' ||
+          urlParams.get('debug') === 'true') {
         console.log('Using test initData');
         return 'test_init_data_for_development';
       }
@@ -320,6 +342,7 @@ export const telegramUtils = {
     isDevelopment: boolean;
     hasTestParams: boolean;
     hasForceTest: boolean;
+    hasDebugMode: boolean;
   } {
     const isTelegram = this.isTelegramWebApp();
     const user = this.getUser();
@@ -332,7 +355,9 @@ export const telegramUtils = {
       process.env.NODE_ENV === 'development' ||
       (typeof window !== 'undefined' && (
         window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1'
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('localhost') ||
+        window.location.hostname.includes('127.0.0.1')
       ));
     
     const hasTestParams = typeof window !== 'undefined' && 
@@ -341,6 +366,9 @@ export const telegramUtils = {
     
     const hasForceTest = typeof window !== 'undefined' && 
       window.location.search.includes('force_telegram=true');
+    
+    const hasDebugMode = typeof window !== 'undefined' && 
+      window.location.search.includes('debug=true');
     
     return {
       isTelegramWebApp: isTelegram,
@@ -351,7 +379,8 @@ export const telegramUtils = {
       urlParams: urlParams,
       isDevelopment: isDevelopment,
       hasTestParams: hasTestParams,
-      hasForceTest: hasForceTest
+      hasForceTest: hasForceTest,
+      hasDebugMode: hasDebugMode
     };
   },
 
