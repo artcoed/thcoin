@@ -1,0 +1,142 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal {
+  background: #1A1A1A;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.iconContainer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.iconContainer.win {
+  background: linear-gradient(135deg, #23B371, #1A8A56);
+}
+
+.iconContainer.lose {
+  background: linear-gradient(135deg, #F65249, #D32F2F);
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.winText {
+  color: #23B371;
+}
+
+.loseText {
+  color: #F65249;
+}
+
+.amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 10px 0;
+}
+
+.timeRemaining {
+  font-size: 16px;
+  color: #83848B;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.continueButton {
+  background: linear-gradient(135deg, #2990FF, #1A75D4);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.continueButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(41, 144, 255, 0.3);
+}
+
+.continueButton:active {
+  transform: translateY(0);
+}
+
+.winButton {
+  background: linear-gradient(135deg, #23B371, #1A8A56);
+}
+
+.winButton:hover {
+  box-shadow: 0 8px 25px rgba(35, 179, 113, 0.3);
+}
+
+.loseButton {
+  background: linear-gradient(135deg, #F65249, #D32F2F);
+}
+
+.loseButton:hover {
+  box-shadow: 0 8px 25px rgba(246, 82, 73, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+} 

@@ -1,0 +1,109 @@
+body {
+  background-color: #0F0F0F;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.toastContainer {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: #F65249;
+  min-width: 120px;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  text-wrap: nowrap;
+}
+
+.toastIcon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.toastText {
+  color: #FFF;
+  font-variant-numeric: lining-nums proportional-nums;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.buxImage {
+  margin-top: 19px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.registrationTitle {
+  color: #FFF;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 38px;
+  margin-top: 16px;
+}
+
+.inputsContainer {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.inputTitle {
+  width: 100%;
+  color: #2990FF;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: 0.15px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.registrationButton {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: #007AFF;
+  color: #fff;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: 0.1px;
+  margin-top: 16px;
+}
+
+.registrationButton:active {
+  background: #3380D4;
+}
+
+.registrationButton:disabled {
+  background: #2F2F2F;
+}
+

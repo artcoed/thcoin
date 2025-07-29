@@ -1,0 +1,201 @@
+body {
+  background-color: #0F0F0F;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.userAvatar {
+  width: 59px;
+  height: 59px;
+  border-radius: 59px;
+  margin-right: 12px;
+}
+
+.leftContainerUsername {
+  color: #FFFFFF;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+}
+
+.leftContainerId {
+  color: rgba(133, 133, 133, 0.60);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: -0.4px;
+  margin-top: 3px;
+}
+
+.copyIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.topContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.leftContainer {
+  display: flex;
+  align-items: center;
+}
+
+.balanceContainer {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.balanceTitle {
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 19px;
+  letter-spacing: -0.4px;
+  text-align: center;
+}
+
+.balanceValue {
+  margin-top: 10px;
+  color: #fff;
+  text-align: center;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.4px;
+}
+
+.balanceMovementContainer {
+  margin-top: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(94deg, rgba(255, 255, 255, 0.10) 14.06%, rgba(255, 255, 255, 0.05) 101.72%);
+  width: 100%;
+  padding: 20px 16px;
+}
+
+.balanceMovementTopContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.balanceMovementTopTitle {
+  color: rgba(255, 255, 255, 0.60);
+  text-align: center;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.balanceMovementTopValue {
+  padding: 4px 8px;
+  border-radius: 9px;
+  background: #10B981;
+  color: #FFF;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.44px;
+}
+
+.balanceMovementBottomContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.balanceMovementBottomLeftTitle {
+  color: #FFF;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.balanceMovementBottomLeftValue {
+  color: #00F5A0;
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.4px;
+}
+
+.balanceMovementBottomIcon {
+  width: 58px;
+  height: 58px;
+}
+
+.navigationButtonsContainer {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.navigationButtonContainer {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 17px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(92deg, rgba(255, 255, 255, 0.10) -3.03%, rgba(255, 255, 255, 0.05) 103.06%);
+  height: 52px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navigationButtonLeftContainer {
+  display: flex;
+  align-items: center;
+}
+
+.navigationButtonText {
+  margin-left: 12px;
+  color: #FFF;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.navigationButtonIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.nextArrowIcon {
+  width: 24px;
+  height: 24px;
+}

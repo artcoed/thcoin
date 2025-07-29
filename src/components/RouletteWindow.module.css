@@ -1,0 +1,357 @@
+* {
+  font-family: "SfProText-Medium", sans-serif;
+}
+
+body {
+  background-color: #0F0F0F;
+}
+
+input {
+  border: none;
+  padding: 0;
+  font-size: 16px;
+  outline: none;
+}
+
+input:focus {
+  outline: none;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.backArrow {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+}
+
+.backArrowIcon {
+  width: 100%;
+  height: 100%;
+}
+
+.rouletteTitle {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.4px;
+  margin-top: 29px;
+}
+
+.rouletteDesc {
+  line-height: normal;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 11px;
+}
+
+.wheelContainer {
+  width: 270px;
+  height: 270px;
+  margin-top: 27px;
+  position: relative;
+}
+
+.wheel {
+  height: 100%;
+  width: 100%;
+}
+
+.spinning {
+  animation: none !important; /* Overridden by inline style */
+}
+
+.arrowIcon {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: -8px;
+  left: calc(50% - 12px);
+}
+
+.betHeaderContainer {
+  margin-top: 34px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.betHeaderTitle {
+  color: #2990FF;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: 0.15px;
+}
+
+.tryingCount {
+  color: #fff;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: 0.15px;
+}
+
+.betAmountContainer {
+  margin-top: 8px;
+  height: 48px;
+  width: 100%;
+  position: relative;
+}
+
+.betAmount {
+  border-radius: 12px;
+  width: 100%;
+  background: #212121;
+  height: 100%;
+  display: flex;
+  padding: 0 16px;
+  align-items: center;
+  gap: 12px;
+  color: #FFF;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  caret-color: #2990FF;
+  border: none;
+}
+
+.clearIconContainer {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+}
+
+.clearIcon {
+  width: 100%;
+  height: 100%;
+}
+
+.limitBetsContainer {
+  color: #83848B;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: 0.15px;
+  margin-top: 8px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.colorsContainer {
+  margin-top: 24px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.color {
+  width: 100%;
+  max-width: 110px;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  color: #fff;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 22px;
+  border-radius: 12px;
+  letter-spacing: -0.43px;
+  cursor: pointer;
+}
+
+.colorBlack {
+  border: 1px solid #2E2E2E;
+  background: #1F1F1F;
+}
+
+.colorRed {
+  background: #F65249;
+}
+
+.colorGreen {
+  background: #32E55E;
+}
+
+.color:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.timer {
+  margin-top: 20px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.result {
+  margin-top: 20px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 12px;
+}
+
+.resultgreen {
+  background-color: #32E55E;
+}
+
+.resultred {
+  background-color: #F65249;
+}
+
+.resultblack {
+  background-color: #1F1F1F;
+}
+
+.modalResultWindowContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 15, 0.78);
+  backdrop-filter: blur(13.5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modalResultWindow {
+  max-width: 340px;
+  padding: 38px 13px;
+  border-radius: 24px;
+  border: 1px solid rgba(16, 185, 129, 0.40);
+  background: rgba(5, 150, 105, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex-direction: column;
+  position: relative;
+}
+
+.iconContainer {
+  background: linear-gradient(137deg, #10B981 16.24%, #059669 75.72%);
+  filter: drop-shadow(0 8px 24px rgba(16, 185, 129, 0.40));
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.resultIconWindow {
+  width: 40px;
+  height: 40px;
+}
+
+.modalResultTitle {
+  color: #10B981;
+  text-align: center;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  margin-top: 20px;
+}
+
+.modalResultDescription {
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  margin-top: 20px;
+}
+
+.modalResultValue {
+  color: #10B981;
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  margin-top: 31px;
+}
+
+.modalResultCurrency {
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  margin-top: 16px;
+}
+
+.closeIconContainer {
+  color: #FFF;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 100;
+  line-height: 19px;
+  letter-spacing: -0.4px;
+  position: absolute;
+  right: 18px;
+  top: 15px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.modalLoseWindow {
+  border: 1px solid rgba(220, 38, 38, 0.40);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.modalLoseWindow .modalResultValue {
+  color: #EF4444;
+}
+
+.modalLoseWindow .modalResultTitle {
+  color: #EF4444;
+}
+
+.modalLoseWindow .iconContainer {
+  background: linear-gradient(137deg, #EF4444 16.24%, #DC2626 75.72%);
+  filter: drop-shadow(0 8px 24px rgba(220, 38, 38, 0.40));
+}

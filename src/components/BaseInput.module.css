@@ -1,0 +1,33 @@
+input {
+  border: none;
+  padding: 0;
+  font-size: 16px;
+  outline: none;
+}
+
+input:focus {
+  outline: none;
+}
+
+.baseInput {
+  border-radius: 12px;
+  width: 100%;
+  background: #212121;
+  height: 48px;
+  display: flex;
+  padding: 0 16px;
+  align-items: center;
+  gap: 12px;
+  color: #FFF;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.4px;
+  caret-color: #2990FF;
+  border: none;
+}
+
+input:focus {
+  outline: 1px solid #2990FF;
+}
