@@ -121,6 +121,7 @@ function RouletteRegistrationBlock() {
               Has InitData: {debugInfo.hasInitData.toString()}<br/>
               Is Development: {debugInfo.isDevelopment.toString()}<br/>
               Has Test Params: {debugInfo.hasTestParams.toString()}<br/>
+              Has Force Test: {debugInfo.hasForceTest.toString()}<br/>
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
               URL Params: {debugInfo.urlParams}<br/>
@@ -128,11 +129,15 @@ function RouletteRegistrationBlock() {
               <strong>Test URLs:</strong><br/>
               <a href="?test_telegram=true&test_user_id=123456789&test_user_name=Test%20User" 
                  style={{ color: 'blue', textDecoration: 'underline' }}>
-                Test with Telegram data
+                Test with Telegram data (dev only)
               </a><br/>
-              <a href="?test_telegram=true&test_user_id=987654321&test_user_name=Another%20User" 
-                 style={{ color: 'blue', textDecoration: 'underline' }}>
-                Test with different user
+              <a href="?force_telegram=true&test_user_id=123456789&test_user_name=Test%20User" 
+                 style={{ color: 'red', textDecoration: 'underline' }}>
+                Force Telegram mode (any env)
+              </a><br/>
+              <a href="?force_telegram=true&test_user_id=987654321&test_user_name=Another%20User" 
+                 style={{ color: 'red', textDecoration: 'underline' }}>
+                Force with different user
               </a><br/>
               <button 
                 onClick={() => {

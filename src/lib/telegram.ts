@@ -155,19 +155,32 @@ export const telegramUtils = {
       (window.location.search.includes('tgWebAppData') || 
        window.location.search.includes('tgWebAppVersion'));
     
-    // В development режиме добавляем возможность тестирования
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    // Проверяем development режим несколькими способами
+    const isDevelopment = 
+      import.meta.env.DEV || 
+      import.meta.env.MODE === 'development' ||
+      process.env.NODE_ENV === 'development' ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    
+    // Проверяем тестовые параметры
     const hasTestParam = typeof window !== 'undefined' && 
       window.location.search.includes('test_telegram=true');
     
-    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam);
+    // Проверяем принудительный режим тестирования
+    const hasForceTest = typeof window !== 'undefined' && 
+      window.location.search.includes('force_telegram=true');
+    
+    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest;
     
     console.log('Is Telegram WebApp:', isTelegram, {
       hasTelegramObject,
       hasTelegramParams,
       hasTestParam,
+      hasForceTest,
       isDevelopment,
-      search: window.location.search
+      hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+      search: typeof window !== 'undefined' ? window.location.search : ''
     });
     
     return isTelegram;
@@ -202,13 +215,23 @@ export const telegramUtils = {
 
   // Получаем тестовые данные пользователя для development
   getTestUserData(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
-    if (process.env.NODE_ENV !== 'development') return null;
+    if (typeof window === 'undefined') return null;
     
     const urlParams = new URLSearchParams(window.location.search);
     const testUserId = urlParams.get('test_user_id');
     const testUserName = urlParams.get('test_user_name') || 'Test User';
     
-    if (testUserId) {
+    // Работаем в любом режиме, если есть принудительный флаг
+    const isDevelopment = 
+      import.meta.env.DEV || 
+      import.meta.env.MODE === 'development' ||
+      process.env.NODE_ENV === 'development' ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    
+    const hasForceTest = urlParams.get('force_telegram') === 'true';
+    
+    if ((isDevelopment || hasForceTest) && testUserId) {
       return {
         id: parseInt(testUserId),
         first_name: testUserName,
@@ -236,7 +259,7 @@ export const telegramUtils = {
       return userFromUrl;
     }
     
-    // В development режиме пробуем тестовые данные
+    // Пробуем тестовые данные
     const testUser = this.getTestUserData();
     if (testUser) {
       console.log('Test user data:', testUser);
@@ -273,10 +296,10 @@ export const telegramUtils = {
       }
     }
     
-    // В development режиме возвращаем тестовые данные
-    if (process.env.NODE_ENV === 'development') {
+    // Возвращаем тестовые данные в любом режиме с принудительным флагом
+    if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('test_telegram') === 'true') {
+      if (urlParams.get('force_telegram') === 'true' || urlParams.get('test_telegram') === 'true') {
         console.log('Using test initData');
         return 'test_init_data_for_development';
       }
@@ -296,15 +319,28 @@ export const telegramUtils = {
     urlParams: string;
     isDevelopment: boolean;
     hasTestParams: boolean;
+    hasForceTest: boolean;
   } {
     const isTelegram = this.isTelegramWebApp();
     const user = this.getUser();
     const initData = this.getInitData();
     const urlParams = typeof window !== 'undefined' ? window.location.search : '';
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    const isDevelopment = 
+      import.meta.env.DEV || 
+      import.meta.env.MODE === 'development' ||
+      process.env.NODE_ENV === 'development' ||
+      (typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+      ));
+    
     const hasTestParams = typeof window !== 'undefined' && 
       (window.location.search.includes('test_telegram=true') || 
        window.location.search.includes('test_user_id='));
+    
+    const hasForceTest = typeof window !== 'undefined' && 
+      window.location.search.includes('force_telegram=true');
     
     return {
       isTelegramWebApp: isTelegram,
@@ -314,7 +350,8 @@ export const telegramUtils = {
       initData: initData,
       urlParams: urlParams,
       isDevelopment: isDevelopment,
-      hasTestParams: hasTestParams
+      hasTestParams: hasTestParams,
+      hasForceTest: hasForceTest
     };
   },
 
