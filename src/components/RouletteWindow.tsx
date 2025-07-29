@@ -7,8 +7,19 @@ import { ReactComponent as WinIcon } from '../assets/roulette/winIcon.svg';
 import { ReactComponent as LoseIcon } from '../assets/roulette/loseIcon.svg';
 import wheelImage from '../assets/roulette/wheel.png';
 import Navbar from "./Navbar";
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { executeRoulette } from '../store/slices/gameSlice';
+import { telegramUtils } from '../lib/telegram';
+import { useTranslation } from '../lib/i18n';
+import ResultModal from './ResultModal';
 
 function RouletteWindow() {
+    const dispatch = useAppDispatch();
+    const { t } = useTranslation();
+    const { user } = useAppSelector(state => state.user);
+    const { rouletteLoading, rouletteError, dailyRouletteCount, lastRouletteResult } = useAppSelector(state => state.game);
+    const { rouletteConfig } = useAppSelector(state => state.config);
+    
     const [isSpinning, setIsSpinning] = useState(false);
     const [result, setResult] = useState<number | null>(null);
     const [usedNumbers, setUsedNumbers] = useState<Set<number>>(new Set());
@@ -17,6 +28,14 @@ function RouletteWindow() {
     const wheelRef = useRef<HTMLImageElement>(null);
     const [spinCount, setSpinCount] = useState(0);
     const [isWinning, setIsWinning] = useState(false);
+    const [betAmount, setBetAmount] = useState<number>(1000);
+    const [showError, setShowError] = useState<string | null>(null);
+    const [showResultModal, setShowResultModal] = useState(false);
+    const [resultData, setResultData] = useState<{
+        isWin: boolean;
+        amount: number;
+        timeRemaining?: number;
+    } | null>(null);
     const numbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const colorMap: { [key: number]: 'black' | 'red' | 'green' } = {
         0: 'green',
@@ -26,6 +45,62 @@ function RouletteWindow() {
         33: 'black', 1: 'red', 20: 'black', 14: 'red', 31: 'black', 9: 'red', 22: 'black',
         18: 'red', 29: 'black', 7: 'red', 28: 'black', 12: 'red', 35: 'black', 3: 'red',
         26: 'black'
+    };
+
+    // Функция для выполнения ставки в рулетке
+    const handleRouletteBet = async (color: 'black' | 'red' | 'green') => {
+        if (!user) {
+            setShowError(t('roulette-error-user'));
+            return;
+        }
+
+        if (!rouletteConfig) {
+            setShowError(t('roulette-error-config'));
+            return;
+        }
+
+        // Проверяем лимиты
+        if (dailyRouletteCount >= rouletteConfig.maxBetsPerDay) {
+            setShowError(t('roulette-error-limit', { max: rouletteConfig.maxBetsPerDay }));
+            return;
+        }
+
+        const maxBet = (user.balance * rouletteConfig.maxBetPercent) / 100;
+        if (betAmount > maxBet) {
+            setShowError(t('roulette-error-max-bet', { 
+                amount: maxBet.toFixed(2), 
+                percent: rouletteConfig.maxBetPercent 
+            }));
+            return;
+        }
+
+        if (betAmount > user.balance) {
+            setShowError(t('roulette-error-insufficient'));
+            return;
+        }
+
+        try {
+            const result = await dispatch(executeRoulette({
+                userId: user.user_id,
+                amount: betAmount,
+                choice: color
+            })).unwrap();
+            
+            // Запускаем анимацию рулетки
+            startSpinAnimation(color, result);
+        } catch (error: any) {
+            setShowError(error.message || t('roulette-error-execution'));
+        }
+    };
+
+    // Функция для очистки суммы ставки
+    const clearBetAmount = () => {
+        setBetAmount(1000);
+    };
+
+    // Функция для обновления суммы ставки
+    const updateBetAmount = (newAmount: number) => {
+        setBetAmount(Math.max(10, Math.min(newAmount, user?.balance || 1000)));
     };
 
     const startSpin = useCallback((color: 'black' | 'red' | 'green') => {
@@ -69,6 +144,48 @@ function RouletteWindow() {
             return () => clearTimeout(spinTimeout);
         }
     }, [isSpinning, usedNumbers, spinCount]);
+
+    // Функция для запуска анимации с результатом от бекенда
+    const startSpinAnimation = (color: 'black' | 'red' | 'green', apiResult: any) => {
+        if (isSpinning) return;
+        setIsSpinning(true);
+        setResult(null);
+        setLastBetColor(color);
+        
+        // Используем результат от API для определения выигрышного числа
+        const winningNumber = apiResult.result;
+        const winningColor = colorMap[winningNumber];
+        
+        // Находим позицию выигрышного числа на колесе
+        const numberIndex = numbers.indexOf(winningNumber);
+        const segmentAngle = 360 / numbers.length;
+        const targetAngle = (numberIndex * segmentAngle) + (segmentAngle / 2);
+        
+        // Добавляем несколько полных оборотов для эффекта
+        const rotations = 5;
+        const totalDegrees = (rotations * 360) + (360 - targetAngle);
+
+        if (wheelRef.current) {
+            wheelRef.current.style.transform = `rotate(${totalDegrees}deg)`;
+            wheelRef.current.style.transition = 'transform 3s ease-out';
+
+            const spinTimeout = setTimeout(() => {
+                setResult(winningNumber);
+                setIsSpinning(false);
+                setSpinCount(prev => prev + 1);
+                
+                // Показываем результат
+                setResultData({
+                    isWin: apiResult.win,
+                    amount: apiResult.amount,
+                    timeRemaining: 30 // Фиксированное время для рулетки
+                });
+                setShowResultModal(true);
+            }, 3000);
+
+            return () => clearTimeout(spinTimeout);
+        }
+    };
 
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
@@ -119,37 +236,25 @@ function RouletteWindow() {
     };
 
     return (
-        <div className={styles.wrapper}>
-            <Navbar />
+        <>
+            <div className={styles.wrapper}>
+                <Navbar />
 
-            { isWinning && (
-                <div className={styles.modalResultWindowContainer}>
-                    <div className={`${styles.modalResultWindow} ${styles.modalLoseWindow}`}>
-                        <button className={styles.closeIconContainer}>
+                {showError && (
+                    <div className={styles.errorContainer}>
+                        <div className={styles.errorText}>{showError}</div>
+                        <button 
+                            className={styles.errorClose}
+                            onClick={() => setShowError(null)}
+                        >
                             ×
                         </button>
-                        <div className={styles.iconContainer}>
-                            <LoseIcon className={styles.resultIconWindow} />
-                        </div>
-                        <div className={styles.modalResultTitle}>
-                            ВЫИГРЫШ!
-                        </div>
-                        <div className={styles.modalResultDescription}>
-                            Поздравляем с победой!
-                        </div>
-                        <div className={styles.modalResultValue}>
-                            -155.42
-                        </div>
-                        <div className={styles.modalResultCurrency}>
-                            EUR
-                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
             <div className={styles.container}>
                 <BackButton className={styles.backArrow} />
-                <div className={styles.rouletteTitle}>Рулетка</div>
+                <div className={styles.rouletteTitle}>{t('roulette-title')}</div>
                 <div className={styles.rouletteDesc}>Проверь свое везение</div>
 
                 <div className={styles.wheelContainer}>
@@ -165,40 +270,59 @@ function RouletteWindow() {
                 {!isSpinning && (
                     <>
                         <div className={styles.betHeaderContainer}>
-                            <div className={styles.betHeaderTitle}>Размер ставки</div>
-                            <div className={styles.tryingCount}>5/5 попыток</div>
+                            <div className={styles.betHeaderTitle}>{t('roulette-bet-size')}</div>
+                            <div className={styles.tryingCount}>
+                                {t('roulette-attempts', { 
+                                    current: dailyRouletteCount, 
+                                    max: rouletteConfig?.maxBetsPerDay || 5 
+                                })}
+                            </div>
                         </div>
                         <div className={styles.betAmountContainer}>
-                            <input className={styles.betAmount} value={1000} readOnly />
-                            <button className={styles.clearIconContainer}>
+                            <input 
+                                className={styles.betAmount} 
+                                value={betAmount} 
+                                onChange={(e) => updateBetAmount(Number(e.target.value) || 0)}
+                                type="number"
+                                min="10"
+                                max={user?.balance || 1000}
+                            />
+                            <button 
+                                className={styles.clearIconContainer}
+                                onClick={clearBetAmount}
+                            >
                                 <ClearIcon className={styles.clearIcon} />
                             </button>
                         </div>
                         <div className={styles.limitBetsContainer}>
-                            <button className={styles.minBet}>Мин: 10</button>
-                            <button className={styles.maxBet}>Макс: 1005.90</button>
+                            <button className={styles.minBet}>{t('roulette-min-bet', { amount: 10 })}</button>
+                            <button className={styles.maxBet}>
+                                {t('roulette-max-bet', { 
+                                    amount: rouletteConfig ? ((user?.balance || 0) * rouletteConfig.maxBetPercent / 100).toFixed(2) : '1000.00'
+                                })}
+                            </button>
                         </div>
                         <div className={styles.colorsContainer}>
                             <button
                                 className={`${styles.color} ${styles.colorBlack}`}
-                                onClick={() => startSpin('black')}
-                                disabled={isSpinning}
+                                onClick={() => handleRouletteBet('black')}
+                                disabled={rouletteLoading}
                             >
-                                x2
+                                {rouletteLoading ? t('roulette-spinning') : 'x2'}
                             </button>
                             <button
                                 className={`${styles.color} ${styles.colorRed}`}
-                                onClick={() => startSpin('red')}
-                                disabled={isSpinning}
+                                onClick={() => handleRouletteBet('red')}
+                                disabled={rouletteLoading}
                             >
-                                x2
+                                {rouletteLoading ? t('roulette-spinning') : 'x2'}
                             </button>
                             <button
                                 className={`${styles.color} ${styles.colorGreen}`}
-                                onClick={() => startSpin('green')}
-                                disabled={isSpinning}
+                                onClick={() => handleRouletteBet('green')}
+                                disabled={rouletteLoading}
                             >
-                                x10
+                                {rouletteLoading ? t('roulette-spinning') : 'x10'}
                             </button>
                         </div>
                     </>
@@ -213,6 +337,20 @@ function RouletteWindow() {
                 )}
             </div>
         </div>
+
+        {/* Модалка результатов */}
+        <ResultModal
+            isOpen={showResultModal}
+            isWin={resultData?.isWin || false}
+            amount={resultData?.amount || 0}
+            timeRemaining={resultData?.timeRemaining}
+            onClose={() => {
+                setShowResultModal(false);
+                setResultData(null);
+            }}
+            gameType="roulette"
+        />
+        </>
     );
 }
 

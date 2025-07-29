@@ -7,8 +7,10 @@ import { useAppContext } from '../context/AppContext';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { registerUser } from '../store/slices/userSlice';
 import { telegramUtils } from '../lib/telegram';
+import { useTranslation } from '../lib/i18n';
 
 function RouletteRegistrationBlock() {
+  const { t } = useTranslation();
   const [toast, setToast] = useState<string | null>(null);
   const { navigateTo } = useAppContext();
   const dispatch = useAppDispatch();
@@ -60,85 +62,85 @@ function RouletteRegistrationBlock() {
               alt="bux image"
           />
 
-          <div className={styles.registrationTitle}>
-            Регистрация
-          </div>
+                            <div className={styles.registrationTitle}>
+                    {t('registration-title')}
+                  </div>
 
           <div className={styles.inputsContainer}>
-            <div className={styles.inputTitle}>
-              ФИО
-            </div>
-            <BaseInput 
-              placeholder={"ФИО"} 
-              value={formData.fullName}
-              onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-            />
-            <div className={styles.inputTitle}>
-              Возраст
-            </div>
-            <BaseInput 
-              placeholder={"Возраст"} 
-              value={formData.age}
-              onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-            />
-            <div className={styles.inputTitle}>
-              Город
-            </div>
-            <BaseInput 
-              placeholder={"Город"} 
-              value={formData.city}
-              onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-            />
-            <div className={styles.inputTitle}>
-              Телефон
-            </div>
-            <BaseInput 
-              placeholder={"Телефон"} 
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            />
-            <div className={styles.inputTitle}>
-              Номер счета IBAN
-            </div>
-            <BaseInput 
-              placeholder={"Номер счета IBAN"} 
-              value={formData.iban}
-              onChange={(e) => setFormData(prev => ({ ...prev, iban: e.target.value }))}
-            />
+                                <div className={styles.inputTitle}>
+                      {t('registration-fullname')}
+                    </div>
+                    <BaseInput
+                      placeholder={t('registration-fullname')}
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                    />
+                    <div className={styles.inputTitle}>
+                      {t('registration-age')}
+                    </div>
+                    <BaseInput
+                      placeholder={t('registration-age')}
+                      value={formData.age}
+                      onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                    />
+                    <div className={styles.inputTitle}>
+                      {t('registration-city')}
+                    </div>
+                    <BaseInput
+                      placeholder={t('registration-city')}
+                      value={formData.city}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    />
+                    <div className={styles.inputTitle}>
+                      {t('registration-phone')}
+                    </div>
+                    <BaseInput
+                      placeholder={t('registration-phone')}
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                    <div className={styles.inputTitle}>
+                      {t('registration-iban')}
+                    </div>
+                    <BaseInput
+                      placeholder={t('registration-iban')}
+                      value={formData.iban}
+                      onChange={(e) => setFormData(prev => ({ ...prev, iban: e.target.value }))}
+                    />
           </div>
 
-          <button 
-            className={styles.registrationButton}
-            onClick={() => {
-              // Валидация
-              if (!formData.fullName || !formData.age || !formData.city || !formData.phone || !formData.iban) {
-                setToast('Пожалуйста, заполните все поля');
-                setTimeout(() => setToast(null), 3000);
-                return;
-              }
+                            <button
+                    className={styles.registrationButton}
+                    onClick={() => {
+                      // Валидация
+                      if (!formData.fullName || !formData.age || !formData.city || !formData.phone || !formData.iban) {
+                        setToast(t('registration-error-fields'));
+                        setTimeout(() => setToast(null), 3000);
+                        return;
+                      }
 
-              // Получаем telegramId из Telegram
-              const telegramId = telegramUtils.getTelegramId();
-              if (!telegramId) {
-                setToast('Ошибка: не удалось получить данные пользователя');
-                setTimeout(() => setToast(null), 3000);
-                return;
-              }
+                      // Получаем telegramId из Telegram
+                      const telegramId = telegramUtils.getTelegramId();
+                      if (!telegramId) {
+                        setToast(t('registration-error-telegram'));
+                        setTimeout(() => setToast(null), 3000);
+                        return;
+                      }
 
-              // Отправляем запрос на регистрацию
-              dispatch(registerUser({
-                telegramId,
-                fullName: formData.fullName,
-                age: parseInt(formData.age),
-                city: formData.city,
-                contact: formData.phone,
-                accountNumber: formData.iban
-              }));
-            }}
-            disabled={loading}
-          >
-            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-          </button>
+                      // Отправляем запрос на регистрацию
+                      dispatch(registerUser({
+                        telegramId,
+                        fullName: formData.fullName,
+                        age: parseInt(formData.age),
+                        city: formData.city,
+                        contact: formData.phone,
+                        accountNumber: formData.iban
+                      }));
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? t('registration-loading') : t('registration-button')}
+                  </button>
         </div>
       </div>
   );
