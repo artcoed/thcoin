@@ -121,6 +121,7 @@ function RouletteRegistrationBlock() {
               Has InitData: {debugInfo.hasInitData.toString()}<br/>
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
+              URL Params: {debugInfo.urlParams}<br/>
               <button 
                 onClick={() => {
                   const newInfo = telegramUtils.getDebugInfo();

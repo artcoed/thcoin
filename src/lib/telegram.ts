@@ -147,21 +147,68 @@ declare global {
 export const telegramUtils = {
   // Проверяем, запущено ли приложение в Telegram
   isTelegramWebApp(): boolean {
-    const isTelegram = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
-    console.log('Is Telegram WebApp:', isTelegram);
+    // Проверяем наличие объекта Telegram
+    const hasTelegramObject = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
+    
+    // Проверяем наличие параметров Telegram в URL
+    const hasTelegramParams = typeof window !== 'undefined' && 
+      (window.location.search.includes('tgWebAppData') || 
+       window.location.search.includes('tgWebAppVersion'));
+    
+    const isTelegram = hasTelegramObject || hasTelegramParams;
+    console.log('Is Telegram WebApp:', isTelegram, {
+      hasTelegramObject,
+      hasTelegramParams,
+      search: window.location.search
+    });
     return isTelegram;
+  },
+
+  // Парсим данные пользователя из URL параметров
+  parseUserFromUrl(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
+    if (typeof window === 'undefined') return null;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const tgWebAppData = urlParams.get('tgWebAppData');
+    
+    if (!tgWebAppData) return null;
+    
+    try {
+      // Декодируем данные
+      const decodedData = decodeURIComponent(tgWebAppData);
+      const params = new URLSearchParams(decodedData);
+      const userParam = params.get('user');
+      
+      if (userParam) {
+        const user = JSON.parse(decodeURIComponent(userParam));
+        console.log('Parsed user from URL:', user);
+        return user;
+      }
+    } catch (error) {
+      console.error('Error parsing user from URL:', error);
+    }
+    
+    return null;
   },
 
   // Получаем данные пользователя из Telegram
   getUser(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
-    if (!this.isTelegramWebApp()) {
-      console.log('Not in Telegram WebApp');
-      return null;
+    // Сначала пробуем получить из объекта Telegram
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      const user = window.Telegram.WebApp.initDataUnsafe.user;
+      console.log('Telegram user data from object:', user);
+      return user;
     }
     
-    const user = window.Telegram!.WebApp.initDataUnsafe.user;
-    console.log('Telegram user data:', user);
-    return user || null;
+    // Если не получилось, пробуем из URL
+    const userFromUrl = this.parseUserFromUrl();
+    if (userFromUrl) {
+      console.log('Telegram user data from URL:', userFromUrl);
+      return userFromUrl;
+    }
+    
+    console.log('No Telegram user data found');
+    return null;
   },
 
   // Получаем telegramId пользователя
@@ -174,13 +221,24 @@ export const telegramUtils = {
 
   // Получаем initData для авторизации
   getInitData(): string {
-    if (!this.isTelegramWebApp()) {
-      console.log('Cannot get initData: not in Telegram WebApp');
-      return '';
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initData) {
+      const initData = window.Telegram.WebApp.initData;
+      console.log('InitData available:', !!initData);
+      return initData;
     }
-    const initData = window.Telegram!.WebApp.initData;
-    console.log('InitData available:', !!initData);
-    return initData;
+    
+    // Если нет initData из объекта, пробуем из URL
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tgWebAppData = urlParams.get('tgWebAppData');
+      if (tgWebAppData) {
+        console.log('InitData from URL available');
+        return decodeURIComponent(tgWebAppData);
+      }
+    }
+    
+    console.log('Cannot get initData: not in Telegram WebApp');
+    return '';
   },
 
   // Получаем детальную информацию о состоянии Telegram WebApp
@@ -190,17 +248,20 @@ export const telegramUtils = {
     hasInitData: boolean;
     userData: any;
     initData: string;
+    urlParams: string;
   } {
     const isTelegram = this.isTelegramWebApp();
-    const user = isTelegram ? window.Telegram!.WebApp.initDataUnsafe.user : null;
-    const initData = isTelegram ? window.Telegram!.WebApp.initData : '';
+    const user = this.getUser();
+    const initData = this.getInitData();
+    const urlParams = typeof window !== 'undefined' ? window.location.search : '';
     
     return {
       isTelegramWebApp: isTelegram,
       hasUser: !!user,
       hasInitData: !!initData,
       userData: user,
-      initData: initData
+      initData: initData,
+      urlParams: urlParams
     };
   },
 
@@ -208,9 +269,14 @@ export const telegramUtils = {
   initWebApp(): void {
     if (this.isTelegramWebApp()) {
       try {
-        window.Telegram!.WebApp.ready();
-        window.Telegram!.WebApp.expand();
-        console.log('Telegram WebApp initialized successfully');
+        // Если есть объект Telegram, инициализируем его
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
+          console.log('Telegram WebApp initialized successfully');
+        } else {
+          console.log('Telegram WebApp object not available, but URL parameters detected');
+        }
       } catch (error) {
         console.error('Error initializing Telegram WebApp:', error);
       }
@@ -221,8 +287,8 @@ export const telegramUtils = {
 
   // Показываем алерт
   showAlert(message: string): void {
-    if (this.isTelegramWebApp()) {
-      window.Telegram!.WebApp.showAlert(message);
+    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
+      window.Telegram.WebApp.showAlert(message);
     } else {
       alert(message);
     }
@@ -231,8 +297,8 @@ export const telegramUtils = {
   // Показываем подтверждение
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.isTelegramWebApp()) {
-        window.Telegram!.WebApp.showConfirm(message, resolve);
+      if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
+        window.Telegram.WebApp.showConfirm(message, resolve);
       } else {
         resolve(confirm(message));
       }
@@ -241,15 +307,15 @@ export const telegramUtils = {
 
   // Закрываем WebApp
   close(): void {
-    if (this.isTelegramWebApp()) {
-      window.Telegram!.WebApp.close();
+    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
+      window.Telegram.WebApp.close();
     }
   },
 
   // Отправляем данные в бот
   sendData(data: string): void {
-    if (this.isTelegramWebApp()) {
-      window.Telegram!.WebApp.sendData(data);
+    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
+      window.Telegram.WebApp.sendData(data);
     }
   }
 }; 
