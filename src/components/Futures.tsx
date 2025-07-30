@@ -4,7 +4,8 @@ import Navbar from './Navbar';
 import BackButton from './BackButton';
 import { ReactComponent as ClearIcon } from '../assets/roulette/clear.svg';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { executeTrade } from '../store/slices/gameSlice';
+import { executeFutures } from '../store/slices/gameSlice';
+import { fetchFuturesConfig } from '../store/slices/configSlice';
 import { telegramUtils } from '../lib/telegram';
 import { useTranslation } from '../lib/i18n';
 import ResultModal from './ResultModal';
@@ -30,8 +31,8 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
     const dispatch = useAppDispatch();
     const { t } = useTranslation();
     const { user } = useAppSelector(state => state.user);
-    const { tradeLoading, tradeError, dailyTradesCount, lastTradeResult } = useAppSelector(state => state.game);
-    const { tradeConfig } = useAppSelector(state => state.config);
+    const { futuresLoading, futuresError, dailyFuturesCount, lastFuturesResult } = useAppSelector(state => state.game);
+    const { futuresConfig } = useAppSelector(state => state.config);
     
     // State for data points
     const [dataPoints, setDataPoints] = useState<DataPoint[]>([
@@ -85,6 +86,13 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
         amount: number;
         timeRemaining?: number;
     } | null>(null);
+
+    // Load futures config on component mount
+    useEffect(() => {
+        if (!futuresConfig) {
+            dispatch(fetchFuturesConfig());
+        }
+    }, [dispatch, futuresConfig]);
 
     // Update width based on container size
     useEffect(() => {
@@ -224,22 +232,22 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
             return;
         }
 
-        if (!tradeConfig) {
+        if (!futuresConfig) {
             setShowError(t('trading-error-config'));
             return;
         }
 
         // Проверяем лимиты
-        if (dailyTradesCount >= tradeConfig.maxBetsPerDay) {
-            setShowError(t('trading-error-limit', { max: tradeConfig.maxBetsPerDay }));
+        if (dailyFuturesCount >= futuresConfig.maxBetsPerDay) {
+            setShowError(t('trading-error-limit', { max: futuresConfig.maxBetsPerDay }));
             return;
         }
 
-        const maxBet = (user.balance * tradeConfig.maxBetPercent) / 100;
+        const maxBet = (user.balance * futuresConfig.maxBetPercent) / 100;
         if (betAmount > maxBet) {
             setShowError(t('trading-error-max-bet', { 
                 amount: maxBet.toFixed(2), 
-                percent: tradeConfig.maxBetPercent 
+                percent: futuresConfig.maxBetPercent 
             }));
             return;
         }
@@ -250,7 +258,7 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
         }
 
         try {
-            const result = await dispatch(executeTrade({
+            const result = await dispatch(executeFutures({
                 userId: user.user_id,
                 amount: betAmount,
                 direction
@@ -261,7 +269,7 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
                 setResultData({
                     isWin: result.win,
                     amount: result.amount,
-                    timeRemaining: tradeConfig?.tradeDuration
+                    timeRemaining: futuresConfig?.tradeDuration
                 });
                 setShowResultModal(true);
             }
@@ -524,8 +532,8 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
                     <div className={styles.betHeaderTitle}>{t('trading-bet-size')}</div>
                     <div className={styles.tryingCount}>
                         {t('trading-attempts', { 
-                            current: dailyTradesCount, 
-                            max: tradeConfig?.maxBetsPerDay || 5 
+                            current: dailyFuturesCount, 
+                            max: futuresConfig?.maxBetsPerDay || 5 
                         })}
                     </div>
                 </div>
@@ -549,7 +557,7 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
                     <button className={styles.minBet}>{t('trading-min-bet', { amount: 10 })}</button>
                     <button className={styles.maxBet}>
                         {t('trading-max-bet', { 
-                            amount: tradeConfig ? ((user?.balance || 0) * tradeConfig.maxBetPercent / 100).toFixed(2) : '1000.00'
+                            amount: futuresConfig ? ((user?.balance || 0) * futuresConfig.maxBetPercent / 100).toFixed(2) : '1000.00'
                         })}
                     </button>
                 </div>
@@ -558,16 +566,16 @@ const Futures: React.FC<FuturesProps> = ({ height = 400 }) => {
                     <button
                         className={`${styles.color} ${styles.colorGreen}`}
                         onClick={() => handleTrade('up')}
-                        disabled={tradeLoading}
+                        disabled={futuresLoading}
                     >
-                        {tradeLoading ? t('trading-processing') : t('trading-up')}
+                        {futuresLoading ? t('trading-processing') : t('trading-up')}
                     </button>
                     <button
                         className={`${styles.color} ${styles.colorRed}`}
                         onClick={() => handleTrade('down')}
-                        disabled={tradeLoading}
+                        disabled={futuresLoading}
                     >
-                        {tradeLoading ? t('trading-processing') : t('trading-down')}
+                        {futuresLoading ? t('trading-processing') : t('trading-down')}
                     </button>
                 </div>
             </div>

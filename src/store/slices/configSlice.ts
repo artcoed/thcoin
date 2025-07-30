@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { TradeConfig, RouletteConfig, BonusConfig } from '../../types/api';
+import type { TradeConfig, RouletteConfig, FuturesConfig, BonusConfig } from '../../types/api';
 import { apiClient } from '../../lib/api';
 
 interface ConfigState {
   tradeConfig: TradeConfig | null;
   rouletteConfig: RouletteConfig | null;
+  futuresConfig: FuturesConfig | null;
   bonusConfig: BonusConfig | null;
   managerContact: string | null;
   loading: boolean;
@@ -14,6 +15,7 @@ interface ConfigState {
 const initialState: ConfigState = {
   tradeConfig: null,
   rouletteConfig: null,
+  futuresConfig: null,
   bonusConfig: null,
   managerContact: null,
   loading: false,
@@ -36,6 +38,15 @@ export const fetchRouletteConfig = createAsyncThunk(
     const state = getState() as { user: { botId: number } };
     const response = await apiClient.getRouletteConfig(state.user.botId);
     return response.rouletteConfig;
+  }
+);
+
+export const fetchFuturesConfig = createAsyncThunk(
+  'config/fetchFutures',
+  async (_, { getState }) => {
+    const state = getState() as { user: { botId: number } };
+    const response = await apiClient.getFuturesConfig(state.user.botId);
+    return response.futuresConfig;
   }
 );
 
@@ -70,6 +81,9 @@ const configSlice = createSlice({
     setRouletteConfig: (state, action: PayloadAction<RouletteConfig>) => {
       state.rouletteConfig = action.payload;
     },
+    setFuturesConfig: (state, action: PayloadAction<FuturesConfig>) => {
+      state.futuresConfig = action.payload;
+    },
     setBonusConfig: (state, action: PayloadAction<BonusConfig>) => {
       state.bonusConfig = action.payload;
     },
@@ -102,6 +116,19 @@ const configSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch roulette config';
       })
+      // Futures config
+      .addCase(fetchFuturesConfig.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchFuturesConfig.fulfilled, (state, action) => {
+        state.loading = false;
+        state.futuresConfig = action.payload;
+      })
+      .addCase(fetchFuturesConfig.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch futures config';
+      })
       // Bonus config
       .addCase(fetchBonusConfig.pending, (state) => {
         state.loading = true;
@@ -131,5 +158,5 @@ const configSlice = createSlice({
   },
 });
 
-export const { clearError, setTradeConfig, setRouletteConfig, setBonusConfig } = configSlice.actions;
+export const { clearError, setTradeConfig, setRouletteConfig, setFuturesConfig, setBonusConfig } = configSlice.actions;
 export default configSlice.reducer; 
