@@ -20,7 +20,7 @@ export interface Transaction {
   bot_id: number;
   user_id: number;
   amount: number;
-  type: "deposit" | "trade" | "bonus" | "withdrawal" | "roulette" | "futures";
+  type: "deposit" | "trade" | "bonus" | "withdrawal" | "roulette";
   status: "pending" | "completed" | "rejected";
   withdrawal_account: string | null;
   withdrawal_status_updated_at: Date | null;
@@ -103,20 +103,6 @@ export interface RouletteResult {
   result: number;
 }
 
-// Типы для фьючерсов
-export interface FuturesInput {
-  botId: number;
-  userId: number;
-  amount: number;
-  direction: "up" | "down";
-}
-
-export interface FuturesResult {
-  win: boolean;
-  amount: number;
-  newBalance: number;
-}
-
 // Типы для вывода средств
 export interface WithdrawalInput {
   botId: number;
@@ -142,13 +128,6 @@ export interface RouletteConfig {
   redMultiplier: number;
   blackMultiplier: number;
   greenMultiplier: number;
-}
-
-export interface FuturesConfig {
-  maxBetPercent: number;
-  maxBetsPerDay: number;
-  winChance: number;
-  tradeDuration: number;
 }
 
 export interface BonusConfig {

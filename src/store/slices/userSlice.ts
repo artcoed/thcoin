@@ -47,29 +47,11 @@ export const fetchUserByTelegram = createAsyncThunk(
   'user/fetchByTelegram',
   async (_, { getState }) => {
     const state = getState() as { user: UserState };
-    
-    // Проверяем, запущено ли приложение в Telegram
-    if (!telegramUtils.isTelegramWebApp()) {
-      throw new Error('Приложение должно быть запущено в Telegram WebApp');
-    }
-    
     const telegramId = telegramUtils.getTelegramId();
-    console.log('Fetching user by Telegram ID:', telegramId);
-    
     if (!telegramId) {
-      // Получаем детальную информацию для диагностики
-      const debugInfo = telegramUtils.getDebugInfo();
-      console.log('Telegram debug info:', debugInfo);
-      
-      if (!debugInfo.hasUser) {
-        throw new Error('Не удалось получить данные пользователя из Telegram. Убедитесь, что приложение запущено в Telegram WebApp.');
-      } else {
-        throw new Error('Не удалось получить ID пользователя из Telegram.');
-      }
+      throw new Error('Telegram ID not available');
     }
-    
     const user = await apiClient.getUser(state.user.botId, telegramId);
-    console.log('Fetched user:', user);
     return user;
   }
 );

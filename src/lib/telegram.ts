@@ -130,14 +130,14 @@ declare global {
         readTextFromClipboard: (callback?: (data: string) => void) => void;
         requestWriteAccess: (callback?: (access: boolean) => void) => void;
         requestContact: (callback?: (contact: boolean) => void) => void;
-        invokeCustomMethod: (method: string, params: any, callback?: (result: any) => void) => void;
-        invokeCustomMethodUnsafe: (method: string, params: any, callback?: (result: any) => void) => void;
-        getCustomMethod: (method: string, callback?: (result: any) => void) => void;
-        getCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
-        setCustomMethod: (method: string, callback?: (result: any) => void) => void;
-        setCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
-        deleteCustomMethod: (method: string, callback?: (result: any) => void) => void;
-        deleteCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+                 invokeCustomMethod: (method: string, params: any, callback?: (result: any) => void) => void;
+         invokeCustomMethodUnsafe: (method: string, params: any, callback?: (result: any) => void) => void;
+         getCustomMethod: (method: string, callback?: (result: any) => void) => void;
+         getCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+         setCustomMethod: (method: string, callback?: (result: any) => void) => void;
+         setCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
+         deleteCustomMethod: (method: string, callback?: (result: any) => void) => void;
+         deleteCustomMethodUnsafe: (method: string, callback?: (result: any) => void) => void;
       };
     };
   }
@@ -145,426 +145,45 @@ declare global {
 
 // Утилиты для работы с Telegram WebApp
 export const telegramUtils = {
-  // Детальная диагностика URL и параметров
-  diagnoseUrl(): void {
-    if (typeof window === 'undefined') return;
-    
-    console.log('=== TELEGRAM WEBAPP DIAGNOSIS ===');
-    console.log('Full URL:', window.location.href);
-    console.log('Hostname:', window.location.hostname);
-    console.log('Port:', window.location.port);
-    console.log('Pathname:', window.location.pathname);
-    console.log('Search:', window.location.search);
-    console.log('Hash:', window.location.hash);
-    
-    // Анализируем все параметры URL (search)
-    const urlParams = new URLSearchParams(window.location.search);
-    console.log('All URL parameters (search):');
-    urlParams.forEach((value, key) => {
-      console.log(`  ${key}: ${value}`);
-    });
-    
-    // Анализируем все параметры URL (hash)
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      console.log('All URL parameters (hash):');
-      hashParams.forEach((value, key) => {
-        console.log(`  ${key}: ${value}`);
-      });
-    }
-    
-    // Проверяем наличие Telegram-специфичных параметров
-    const telegramParams = [
-      'tgWebAppData',
-      'tgWebAppVersion', 
-      'tgWebAppPlatform',
-      'tgWebAppThemeParams',
-      'tgWebAppStartParam',
-      'tgWebAppBackButton',
-      'tgWebAppMainButton',
-      'tgWebAppHapticFeedback',
-      'tgWebAppInitData',
-      'tgWebAppInitDataUnsafe'
-    ];
-    
-    console.log('Telegram-specific parameters (search):');
-    telegramParams.forEach(param => {
-      const value = urlParams.get(param);
-      if (value) {
-        console.log(`  ${param}: ${value}`);
-      }
-    });
-    
-    console.log('Telegram-specific parameters (hash):');
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      telegramParams.forEach(param => {
-        const value = hashParams.get(param);
-        if (value) {
-          console.log(`  ${param}: ${value}`);
-        }
-      });
-    }
-    
-    // Проверяем объект window.Telegram
-    console.log('window.Telegram object:', window.Telegram);
-    if (window.Telegram) {
-      console.log('window.Telegram.WebApp:', window.Telegram.WebApp);
-      if (window.Telegram.WebApp) {
-        console.log('WebApp.initData:', window.Telegram.WebApp.initData);
-        console.log('WebApp.initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
-        console.log('WebApp.version:', window.Telegram.WebApp.version);
-        console.log('WebApp.platform:', window.Telegram.WebApp.platform);
-      }
-    }
-    
-    // Проверяем user agent
-    console.log('User Agent:', navigator.userAgent);
-    
-    // Проверяем referrer
-    console.log('Referrer:', document.referrer);
-    
-    console.log('=== END DIAGNOSIS ===');
-  },
-
   // Проверяем, запущено ли приложение в Telegram
   isTelegramWebApp(): boolean {
-    // Сначала запускаем диагностику
-    this.diagnoseUrl();
-    
-    // Проверяем наличие объекта Telegram
-    const hasTelegramObject = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
-    
-    // Проверяем наличие параметров Telegram в URL (search и hash)
-    const hasTelegramParams = typeof window !== 'undefined' && 
-      (window.location.search.includes('tgWebAppData') || 
-       window.location.search.includes('tgWebAppVersion') ||
-       window.location.search.includes('tgWebAppPlatform') ||
-       window.location.search.includes('tgWebAppThemeParams') ||
-       window.location.hash.includes('tgWebAppData') ||
-       window.location.hash.includes('tgWebAppVersion') ||
-       window.location.hash.includes('tgWebAppPlatform') ||
-       window.location.hash.includes('tgWebAppThemeParams'));
-    
-    // Проверяем development режим несколькими способами
-    const isDevelopment = 
-      import.meta.env.DEV || 
-      import.meta.env.MODE === 'development' ||
-      process.env.NODE_ENV === 'development' ||
-      (typeof window !== 'undefined' && (
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('localhost') ||
-        window.location.hostname.includes('127.0.0.1')
-      ));
-    
-    // Проверяем тестовые параметры
-    const hasTestParam = typeof window !== 'undefined' && 
-      (window.location.search.includes('test_telegram=true') ||
-       window.location.hash.includes('test_telegram=true'));
-    
-    // Проверяем принудительный режим тестирования
-    const hasForceTest = typeof window !== 'undefined' && 
-      (window.location.search.includes('force_telegram=true') ||
-       window.location.hash.includes('force_telegram=true'));
-    
-    // Проверяем отладочный режим
-    const hasDebugMode = typeof window !== 'undefined' && 
-      (window.location.search.includes('debug=true') ||
-       window.location.hash.includes('debug=true'));
-    
-    // Дополнительные проверки для Telegram WebApp
-    const hasTelegramUserAgent = typeof window !== 'undefined' && 
-      navigator.userAgent.includes('TelegramWebApp');
-    
-    const hasTelegramReferrer = typeof window !== 'undefined' && 
-      document.referrer.includes('t.me');
-    
-    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest || hasDebugMode || hasTelegramUserAgent || hasTelegramReferrer;
-    
-    console.log('Is Telegram WebApp:', isTelegram, {
-      hasTelegramObject,
-      hasTelegramParams,
-      hasTestParam,
-      hasForceTest,
-      hasDebugMode,
-      hasTelegramUserAgent,
-      hasTelegramReferrer,
-      isDevelopment,
-      hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
-      port: typeof window !== 'undefined' ? window.location.port : 'unknown',
-      search: typeof window !== 'undefined' ? window.location.search : '',
-      hash: typeof window !== 'undefined' ? window.location.hash : '',
-      importMetaEnv: {
-        DEV: import.meta.env.DEV,
-        MODE: import.meta.env.MODE,
-        NODE_ENV: process.env.NODE_ENV
-      }
-    });
-    
-    return isTelegram;
-  },
-
-  // Парсим данные пользователя из URL параметров (search и hash)
-  parseUserFromUrl(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Сначала пробуем из search параметров
-    let urlParams = new URLSearchParams(window.location.search);
-    let tgWebAppData = urlParams.get('tgWebAppData');
-    
-    // Если нет в search, пробуем из hash
-    if (!tgWebAppData && window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      tgWebAppData = hashParams.get('tgWebAppData');
-    }
-    
-    if (!tgWebAppData) return null;
-    
-    try {
-      // Декодируем данные
-      const decodedData = decodeURIComponent(tgWebAppData);
-      const params = new URLSearchParams(decodedData);
-      const userParam = params.get('user');
-      
-      if (userParam) {
-        const user = JSON.parse(decodeURIComponent(userParam));
-        console.log('Parsed user from URL:', user);
-        return user;
-      }
-    } catch (error) {
-      console.error('Error parsing user from URL:', error);
-    }
-    
-    return null;
-  },
-
-  // Получаем тестовые данные пользователя для development
-  getTestUserData(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Сначала пробуем из search параметров
-    let urlParams = new URLSearchParams(window.location.search);
-    let testUserId = urlParams.get('test_user_id');
-    let testUserName = urlParams.get('test_user_name') || 'Test User';
-    
-    // Если нет в search, пробуем из hash
-    if (!testUserId && window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      testUserId = hashParams.get('test_user_id');
-      testUserName = hashParams.get('test_user_name') || 'Test User';
-    }
-    
-    // Работаем в любом режиме, если есть принудительный флаг или отладочный режим
-    const isDevelopment = 
-      import.meta.env.DEV || 
-      import.meta.env.MODE === 'development' ||
-      process.env.NODE_ENV === 'development' ||
-      (typeof window !== 'undefined' && (
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('localhost') ||
-        window.location.hostname.includes('127.0.0.1')
-      ));
-    
-    const hasForceTest = urlParams.get('force_telegram') === 'true' || 
-      (window.location.hash && new URLSearchParams(window.location.hash.substring(1)).get('force_telegram') === 'true');
-    
-    const hasDebugMode = urlParams.get('debug') === 'true' || 
-      (window.location.hash && new URLSearchParams(window.location.hash.substring(1)).get('debug') === 'true');
-    
-    if ((isDevelopment || hasForceTest || hasDebugMode) && testUserId) {
-      return {
-        id: parseInt(testUserId),
-        first_name: testUserName,
-        username: 'test_user',
-        photo_url: 'https://t.me/i/userpic/320/test.jpg'
-      };
-    }
-    
-    return null;
+    return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
   },
 
   // Получаем данные пользователя из Telegram
   getUser(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
-    // Сначала пробуем получить из объекта Telegram
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user) {
-      const user = window.Telegram.WebApp.initDataUnsafe.user;
-      console.log('Telegram user data from object:', user);
-      return user;
+    if (!this.isTelegramWebApp()) {
+      return null;
     }
-    
-    // Если не получилось, пробуем из URL
-    const userFromUrl = this.parseUserFromUrl();
-    if (userFromUrl) {
-      console.log('Telegram user data from URL:', userFromUrl);
-      return userFromUrl;
-    }
-    
-    // Пробуем тестовые данные
-    const testUser = this.getTestUserData();
-    if (testUser) {
-      console.log('Test user data:', testUser);
-      return testUser;
-    }
-    
-    console.log('No Telegram user data found');
-    return null;
+    return window.Telegram!.WebApp.initDataUnsafe.user || null;
   },
 
   // Получаем telegramId пользователя
   getTelegramId(): string | null {
     const user = this.getUser();
-    const telegramId = user ? user.id.toString() : null;
-    console.log('Telegram ID:', telegramId);
-    return telegramId;
+    return user ? user.id.toString() : null;
   },
 
   // Получаем initData для авторизации
   getInitData(): string {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initData) {
-      const initData = window.Telegram.WebApp.initData;
-      console.log('InitData available:', !!initData);
-      return initData;
+    if (!this.isTelegramWebApp()) {
+      return '';
     }
-    
-    // Если нет initData из объекта, пробуем из URL (search и hash)
-    if (typeof window !== 'undefined') {
-      // Сначала пробуем из search параметров
-      let urlParams = new URLSearchParams(window.location.search);
-      let tgWebAppData = urlParams.get('tgWebAppData');
-      
-      // Если нет в search, пробуем из hash
-      if (!tgWebAppData && window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        tgWebAppData = hashParams.get('tgWebAppData');
-      }
-      
-      if (tgWebAppData) {
-        console.log('InitData from URL available');
-        return decodeURIComponent(tgWebAppData);
-      }
-    }
-    
-    // Возвращаем тестовые данные в любом режиме с принудительным флагом
-    if (typeof window !== 'undefined') {
-      let urlParams = new URLSearchParams(window.location.search);
-      let hasForceTest = urlParams.get('force_telegram') === 'true' || 
-        urlParams.get('test_telegram') === 'true' ||
-        urlParams.get('debug') === 'true';
-      
-      // Проверяем hash параметры
-      if (!hasForceTest && window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        hasForceTest = hashParams.get('force_telegram') === 'true' || 
-          hashParams.get('test_telegram') === 'true' ||
-          hashParams.get('debug') === 'true';
-      }
-      
-      if (hasForceTest) {
-        console.log('Using test initData');
-        return 'test_init_data_for_development';
-      }
-    }
-    
-    console.log('Cannot get initData: not in Telegram WebApp');
-    return '';
-  },
-
-  // Получаем детальную информацию о состоянии Telegram WebApp
-  getDebugInfo(): {
-    isTelegramWebApp: boolean;
-    hasUser: boolean;
-    hasInitData: boolean;
-    userData: any;
-    initData: string;
-    urlParams: string;
-    urlHash: string;
-    isDevelopment: boolean;
-    hasTestParams: boolean;
-    hasForceTest: boolean;
-    hasDebugMode: boolean;
-    hasTelegramUserAgent: boolean;
-    hasTelegramReferrer: boolean;
-  } {
-    const isTelegram = this.isTelegramWebApp();
-    const user = this.getUser();
-    const initData = this.getInitData();
-    const urlParams = typeof window !== 'undefined' ? window.location.search : '';
-    const urlHash = typeof window !== 'undefined' ? window.location.hash : '';
-    
-    const isDevelopment = 
-      import.meta.env.DEV || 
-      import.meta.env.MODE === 'development' ||
-      process.env.NODE_ENV === 'development' ||
-      (typeof window !== 'undefined' && (
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('localhost') ||
-        window.location.hostname.includes('127.0.0.1')
-      ));
-    
-    const hasTestParams = typeof window !== 'undefined' && 
-      (window.location.search.includes('test_telegram=true') || 
-       window.location.search.includes('test_user_id=') ||
-       window.location.hash.includes('test_telegram=true') ||
-       window.location.hash.includes('test_user_id='));
-    
-    const hasForceTest = typeof window !== 'undefined' && 
-      (window.location.search.includes('force_telegram=true') ||
-       window.location.hash.includes('force_telegram=true'));
-    
-    const hasDebugMode = typeof window !== 'undefined' && 
-      (window.location.search.includes('debug=true') ||
-       window.location.hash.includes('debug=true'));
-    
-    const hasTelegramUserAgent = typeof window !== 'undefined' && 
-      navigator.userAgent.includes('TelegramWebApp');
-    
-    const hasTelegramReferrer = typeof window !== 'undefined' && 
-      document.referrer.includes('t.me');
-    
-    return {
-      isTelegramWebApp: isTelegram,
-      hasUser: !!user,
-      hasInitData: !!initData,
-      userData: user,
-      initData: initData,
-      urlParams: urlParams,
-      urlHash: urlHash,
-      isDevelopment: isDevelopment,
-      hasTestParams: hasTestParams,
-      hasForceTest: hasForceTest,
-      hasDebugMode: hasDebugMode,
-      hasTelegramUserAgent: hasTelegramUserAgent,
-      hasTelegramReferrer: hasTelegramReferrer
-    };
+    return window.Telegram!.WebApp.initData;
   },
 
   // Инициализируем WebApp
   initWebApp(): void {
     if (this.isTelegramWebApp()) {
-      try {
-        // Если есть объект Telegram, инициализируем его
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.ready();
-          window.Telegram.WebApp.expand();
-          console.log('Telegram WebApp initialized successfully');
-        } else {
-          console.log('Telegram WebApp object not available, but URL parameters detected');
-        }
-      } catch (error) {
-        console.error('Error initializing Telegram WebApp:', error);
-      }
-    } else {
-      console.log('Cannot initialize: not in Telegram WebApp');
+      window.Telegram!.WebApp.ready();
+      window.Telegram!.WebApp.expand();
     }
   },
 
   // Показываем алерт
   showAlert(message: string): void {
-    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
-      window.Telegram.WebApp.showAlert(message);
+    if (this.isTelegramWebApp()) {
+      window.Telegram!.WebApp.showAlert(message);
     } else {
       alert(message);
     }
@@ -573,8 +192,8 @@ export const telegramUtils = {
   // Показываем подтверждение
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showConfirm(message, resolve);
+      if (this.isTelegramWebApp()) {
+        window.Telegram!.WebApp.showConfirm(message, resolve);
       } else {
         resolve(confirm(message));
       }
@@ -583,15 +202,15 @@ export const telegramUtils = {
 
   // Закрываем WebApp
   close(): void {
-    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
-      window.Telegram.WebApp.close();
+    if (this.isTelegramWebApp()) {
+      window.Telegram!.WebApp.close();
     }
   },
 
   // Отправляем данные в бот
   sendData(data: string): void {
-    if (this.isTelegramWebApp() && window.Telegram?.WebApp) {
-      window.Telegram.WebApp.sendData(data);
+    if (this.isTelegramWebApp()) {
+      window.Telegram!.WebApp.sendData(data);
     }
   }
 }; 

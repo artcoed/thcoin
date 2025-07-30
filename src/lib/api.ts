@@ -9,11 +9,8 @@ import type {
   WithdrawalInput,
   TradeResult,
   RouletteResult,
-  FuturesInput,
-  FuturesResult,
   TradeConfig,
   RouletteConfig,
-  FuturesConfig,
   BonusConfig,
   TelegramAuth,
   ApiResponse
@@ -47,95 +44,70 @@ const api = ky.create({
   }
 });
 
-// Универсальный tRPC batch-запрос
-async function trpcCall<T>(procedure: string, input: any): Promise<T> {
-  const res = await api.post(`${procedure}?batch=1`, {
-    json: [
-      {
-        id: 0,
-        jsonrpc: "2.0",
-        method: procedure,
-        params: { input }
-      }
-    ]
-  }).json<any>();
-  return res[0]?.result?.data ?? null;
-}
-
 // API функции
 export const apiClient = {
   // Регистрация пользователя
   async registerUser(input: RegisterUserInput): Promise<ApiResponse<{ userId: number }>> {
-    return trpcCall('registerUser', input);
+    return api.post('registerUser', { json: input }).json();
   },
 
   // Получение пользователя
   async getUser(botId: number, telegramId: string): Promise<User | null> {
-    return trpcCall('getUser', { botId, telegramId });
+    return api.post('getUser', { json: { botId, telegramId } }).json();
   },
 
   // Трейдинг
   async trade(input: TradeInput): Promise<ApiResponse<TradeResult>> {
-    return trpcCall('trade', input);
+    return api.post('trade', { json: input }).json();
   },
 
   // Рулетка
   async roulette(input: RouletteInput): Promise<ApiResponse<RouletteResult>> {
-    return trpcCall('roulette', input);
-  },
-
-  // Фьючерсы
-  async futures(input: FuturesInput): Promise<ApiResponse<FuturesResult>> {
-    return trpcCall('futures', input);
+    return api.post('roulette', { json: input }).json();
   },
 
   // Запрос на вывод средств
   async requestWithdrawal(input: WithdrawalInput): Promise<ApiResponse> {
-    return trpcCall('requestWithdrawal', input);
+    return api.post('requestWithdrawal', { json: input }).json();
   },
 
   // Получение истории транзакций
   async getTransactionHistory(botId: number, userId: number, limit: number = 10): Promise<Transaction[]> {
-    return trpcCall('getTransactionHistory', { botId, userId, limit });
+    return api.post('getTransactionHistory', { json: { botId, userId, limit } }).json();
   },
 
   // Получение конфигурации трейдинга
   async getTradeConfig(botId: number): Promise<{ tradeConfig: TradeConfig }> {
-    return trpcCall('getTradeConfig', { botId });
+    return api.post('getTradeConfig', { json: { botId } }).json();
   },
 
   // Получение конфигурации рулетки
   async getRouletteConfig(botId: number): Promise<{ rouletteConfig: RouletteConfig }> {
-    return trpcCall('getRouletteConfig', { botId });
-  },
-
-  // Получение конфигурации фьючерсов
-  async getFuturesConfig(botId: number): Promise<{ futuresConfig: FuturesConfig }> {
-    return trpcCall('getFuturesConfig', { botId });
+    return api.post('getRouletteConfig', { json: { botId } }).json();
   },
 
   // Получение конфигурации бонусов
   async getBonusesConfig(botId: number): Promise<{ bonusConfig: BonusConfig }> {
-    return trpcCall('getBonusesConfig', { botId });
+    return api.post('getBonusesConfig', { json: { botId } }).json();
   },
 
   // Получение контакта менеджера
   async getManagerContact(botId: number): Promise<{ managerContact: string }> {
-    return trpcCall('getManagerContact', { botId });
+    return api.post('getManagerContact', { json: { botId } }).json();
   },
 
   // Получение процента роста пользователя
   async getUserGrowthPercent(botId: number, userId: number): Promise<{ percent: number }> {
-    return trpcCall('getUserGrowthPercent', { botId, userId });
+    return api.post('getUserGrowthPercent', { json: { botId, userId } }).json();
   },
 
   // Авторизация через Telegram
   async authTelegram(auth: TelegramAuth): Promise<ApiResponse<{ user: User }>> {
-    return trpcCall('authTelegram', auth);
+    return api.post('authTelegram', { json: auth }).json();
   },
 
-  // Получение переводов локализации
-  async getLocale(locale: string): Promise<{ success: boolean; translations?: Record<string, string>; errorMessage?: string }> {
-    return trpcCall('getLocale', { botId: 1, locale });
+  // Получить локализацию с бекенда
+  async getLocale(locale: 'ru' | 'en' = 'ru', botId: number = 1) {
+    return api.post('getLocale', { json: { botId, locale } }).json();
   },
 }; 

@@ -27,6 +27,7 @@ class I18nManager {
   // Загрузить переводы с бекенда
   async loadTranslations(locale: Locale): Promise<void> {
     if (this.isLoading) return;
+    
     this.isLoading = true;
     try {
       const response = await apiClient.getLocale(locale) as {
@@ -38,14 +39,43 @@ class I18nManager {
         this.translations = response.translations;
       } else {
         console.error('Failed to load translations:', response.errorMessage);
-        this.translations = {};
+        // Минимальный fallback только для критически важных сообщений
+        this.translations = this.getMinimalFallback();
       }
     } catch (error) {
       console.error('Error loading translations:', error);
-      this.translations = {};
+      // Минимальный fallback только для критически важных сообщений
+      this.translations = this.getMinimalFallback();
     } finally {
       this.isLoading = false;
     }
+  }
+
+  // Минимальный fallback только для критически важных сообщений
+  private getMinimalFallback(): Translations {
+    return {
+      'loading': 'Loading...',
+      'error': 'Error',
+      'success': 'Success',
+      'cancel': 'Cancel',
+      'confirm': 'Confirm',
+      'back': 'Back'
+    };
+  }
+
+  // Инициализация (загружаем сохраненную локаль)
+  async init(): Promise<void> {
+    const savedLocale = localStorage.getItem('locale') as Locale;
+    if (savedLocale && ['ru', 'en'].includes(savedLocale)) {
+      this.currentLocale = savedLocale;
+    } else {
+      // Определяем локаль по языку браузера
+      const browserLang = navigator.language.split('-')[0];
+      this.currentLocale = browserLang === 'en' ? 'en' : 'ru';
+    }
+    
+    // Загружаем переводы
+    await this.loadTranslations(this.currentLocale);
   }
 
   // Перевести строку
@@ -79,20 +109,6 @@ class I18nManager {
   // Получить все переводы
   getTranslations(): Translations {
     return { ...this.translations };
-  }
-
-  // Инициализация (загружаем сохраненную локаль)
-  async init(): Promise<void> {
-    const savedLocale = localStorage.getItem('locale') as Locale;
-    if (savedLocale && ['ru', 'en'].includes(savedLocale)) {
-      this.currentLocale = savedLocale;
-    } else {
-      // Определяем локаль по языку браузера
-      const browserLang = navigator.language.split('-')[0];
-      this.currentLocale = browserLang === 'en' ? 'en' : 'ru';
-    }
-    // Загружаем переводы только с бэкенда
-    await this.loadTranslations(this.currentLocale);
   }
 }
 
