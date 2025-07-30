@@ -47,80 +47,95 @@ const api = ky.create({
   }
 });
 
+// Универсальный tRPC batch-запрос
+async function trpcCall<T>(procedure: string, input: any): Promise<T> {
+  const res = await api.post(`${procedure}?batch=1`, {
+    json: [
+      {
+        id: 0,
+        jsonrpc: "2.0",
+        method: procedure,
+        params: { input }
+      }
+    ]
+  }).json<any>();
+  return res[0]?.result?.data ?? null;
+}
+
 // API функции
 export const apiClient = {
   // Регистрация пользователя
   async registerUser(input: RegisterUserInput): Promise<ApiResponse<{ userId: number }>> {
-    return api.post('registerUser', { json: input }).json();
+    return trpcCall('registerUser', input);
   },
 
   // Получение пользователя
   async getUser(botId: number, telegramId: string): Promise<User | null> {
-    return api.post('getUser', { json: { input: { botId, telegramId } } }).json();
+    return trpcCall('getUser', { botId, telegramId });
   },
 
   // Трейдинг
   async trade(input: TradeInput): Promise<ApiResponse<TradeResult>> {
-    return api.post('trade', { json: input }).json();
+    return trpcCall('trade', input);
   },
 
   // Рулетка
   async roulette(input: RouletteInput): Promise<ApiResponse<RouletteResult>> {
-    return api.post('roulette', { json: input }).json();
+    return trpcCall('roulette', input);
   },
 
   // Фьючерсы
   async futures(input: FuturesInput): Promise<ApiResponse<FuturesResult>> {
-    return api.post('futures', { json: input }).json();
+    return trpcCall('futures', input);
   },
 
   // Запрос на вывод средств
   async requestWithdrawal(input: WithdrawalInput): Promise<ApiResponse> {
-    return api.post('requestWithdrawal', { json: input }).json();
+    return trpcCall('requestWithdrawal', input);
   },
 
   // Получение истории транзакций
   async getTransactionHistory(botId: number, userId: number, limit: number = 10): Promise<Transaction[]> {
-    return api.post('getTransactionHistory', { json: { botId, userId, limit } }).json();
+    return trpcCall('getTransactionHistory', { botId, userId, limit });
   },
 
   // Получение конфигурации трейдинга
   async getTradeConfig(botId: number): Promise<{ tradeConfig: TradeConfig }> {
-    return api.post('getTradeConfig', { json: { botId } }).json();
+    return trpcCall('getTradeConfig', { botId });
   },
 
   // Получение конфигурации рулетки
   async getRouletteConfig(botId: number): Promise<{ rouletteConfig: RouletteConfig }> {
-    return api.post('getRouletteConfig', { json: { botId } }).json();
+    return trpcCall('getRouletteConfig', { botId });
   },
 
   // Получение конфигурации фьючерсов
   async getFuturesConfig(botId: number): Promise<{ futuresConfig: FuturesConfig }> {
-    return api.post('getFuturesConfig', { json: { botId } }).json();
+    return trpcCall('getFuturesConfig', { botId });
   },
 
   // Получение конфигурации бонусов
   async getBonusesConfig(botId: number): Promise<{ bonusConfig: BonusConfig }> {
-    return api.post('getBonusesConfig', { json: { botId } }).json();
+    return trpcCall('getBonusesConfig', { botId });
   },
 
   // Получение контакта менеджера
   async getManagerContact(botId: number): Promise<{ managerContact: string }> {
-    return api.post('getManagerContact', { json: { botId } }).json();
+    return trpcCall('getManagerContact', { botId });
   },
 
   // Получение процента роста пользователя
   async getUserGrowthPercent(botId: number, userId: number): Promise<{ percent: number }> {
-    return api.post('getUserGrowthPercent', { json: { botId, userId } }).json();
+    return trpcCall('getUserGrowthPercent', { botId, userId });
   },
 
   // Авторизация через Telegram
   async authTelegram(auth: TelegramAuth): Promise<ApiResponse<{ user: User }>> {
-    return api.post('authTelegram', { json: auth }).json();
+    return trpcCall('authTelegram', auth);
   },
 
   // Получение переводов локализации
   async getLocale(locale: string): Promise<{ success: boolean; translations?: Record<string, string>; errorMessage?: string }> {
-    return api.post('getLocale', { json: { botId: 1, locale } }).json();
+    return trpcCall('getLocale', { botId: 1, locale });
   },
 }; 
