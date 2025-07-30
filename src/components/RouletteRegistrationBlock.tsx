@@ -125,6 +125,8 @@ function RouletteRegistrationBlock() {
               Has Test Params: {debugInfo.hasTestParams.toString()}<br/>
               Has Force Test: {debugInfo.hasForceTest.toString()}<br/>
               Has Debug Mode: {debugInfo.hasDebugMode.toString()}<br/>
+              Has Telegram User Agent: {debugInfo.hasTelegramUserAgent.toString()}<br/>
+              Has Telegram Referrer: {debugInfo.hasTelegramReferrer.toString()}<br/>
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
               URL Params: {debugInfo.urlParams}<br/>

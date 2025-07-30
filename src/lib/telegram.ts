@@ -145,15 +145,82 @@ declare global {
 
 // Утилиты для работы с Telegram WebApp
 export const telegramUtils = {
+  // Детальная диагностика URL и параметров
+  diagnoseUrl(): void {
+    if (typeof window === 'undefined') return;
+    
+    console.log('=== TELEGRAM WEBAPP DIAGNOSIS ===');
+    console.log('Full URL:', window.location.href);
+    console.log('Hostname:', window.location.hostname);
+    console.log('Port:', window.location.port);
+    console.log('Pathname:', window.location.pathname);
+    console.log('Search:', window.location.search);
+    console.log('Hash:', window.location.hash);
+    
+    // Анализируем все параметры URL
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log('All URL parameters:');
+    urlParams.forEach((value, key) => {
+      console.log(`  ${key}: ${value}`);
+    });
+    
+    // Проверяем наличие Telegram-специфичных параметров
+    const telegramParams = [
+      'tgWebAppData',
+      'tgWebAppVersion', 
+      'tgWebAppPlatform',
+      'tgWebAppThemeParams',
+      'tgWebAppStartParam',
+      'tgWebAppBackButton',
+      'tgWebAppMainButton',
+      'tgWebAppHapticFeedback',
+      'tgWebAppInitData',
+      'tgWebAppInitDataUnsafe'
+    ];
+    
+    console.log('Telegram-specific parameters:');
+    telegramParams.forEach(param => {
+      const value = urlParams.get(param);
+      if (value) {
+        console.log(`  ${param}: ${value}`);
+      }
+    });
+    
+    // Проверяем объект window.Telegram
+    console.log('window.Telegram object:', window.Telegram);
+    if (window.Telegram) {
+      console.log('window.Telegram.WebApp:', window.Telegram.WebApp);
+      if (window.Telegram.WebApp) {
+        console.log('WebApp.initData:', window.Telegram.WebApp.initData);
+        console.log('WebApp.initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+        console.log('WebApp.version:', window.Telegram.WebApp.version);
+        console.log('WebApp.platform:', window.Telegram.WebApp.platform);
+      }
+    }
+    
+    // Проверяем user agent
+    console.log('User Agent:', navigator.userAgent);
+    
+    // Проверяем referrer
+    console.log('Referrer:', document.referrer);
+    
+    console.log('=== END DIAGNOSIS ===');
+  },
+
   // Проверяем, запущено ли приложение в Telegram
   isTelegramWebApp(): boolean {
+    // Сначала запускаем диагностику
+    this.diagnoseUrl();
+    
     // Проверяем наличие объекта Telegram
     const hasTelegramObject = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
     
     // Проверяем наличие параметров Telegram в URL
     const hasTelegramParams = typeof window !== 'undefined' && 
       (window.location.search.includes('tgWebAppData') || 
-       window.location.search.includes('tgWebAppVersion'));
+       window.location.search.includes('tgWebAppVersion') ||
+       window.location.search.includes('tgWebAppPlatform') ||
+       window.location.search.includes('tgWebAppThemeParams'));
     
     // Проверяем development режим несколькими способами
     const isDevelopment = 
@@ -179,7 +246,14 @@ export const telegramUtils = {
     const hasDebugMode = typeof window !== 'undefined' && 
       window.location.search.includes('debug=true');
     
-    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest || hasDebugMode;
+    // Дополнительные проверки для Telegram WebApp
+    const hasTelegramUserAgent = typeof window !== 'undefined' && 
+      navigator.userAgent.includes('TelegramWebApp');
+    
+    const hasTelegramReferrer = typeof window !== 'undefined' && 
+      document.referrer.includes('t.me');
+    
+    const isTelegram = hasTelegramObject || hasTelegramParams || (isDevelopment && hasTestParam) || hasForceTest || hasDebugMode || hasTelegramUserAgent || hasTelegramReferrer;
     
     console.log('Is Telegram WebApp:', isTelegram, {
       hasTelegramObject,
@@ -187,6 +261,8 @@ export const telegramUtils = {
       hasTestParam,
       hasForceTest,
       hasDebugMode,
+      hasTelegramUserAgent,
+      hasTelegramReferrer,
       isDevelopment,
       hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
       port: typeof window !== 'undefined' ? window.location.port : 'unknown',
@@ -343,6 +419,8 @@ export const telegramUtils = {
     hasTestParams: boolean;
     hasForceTest: boolean;
     hasDebugMode: boolean;
+    hasTelegramUserAgent: boolean;
+    hasTelegramReferrer: boolean;
   } {
     const isTelegram = this.isTelegramWebApp();
     const user = this.getUser();
@@ -370,6 +448,12 @@ export const telegramUtils = {
     const hasDebugMode = typeof window !== 'undefined' && 
       window.location.search.includes('debug=true');
     
+    const hasTelegramUserAgent = typeof window !== 'undefined' && 
+      navigator.userAgent.includes('TelegramWebApp');
+    
+    const hasTelegramReferrer = typeof window !== 'undefined' && 
+      document.referrer.includes('t.me');
+    
     return {
       isTelegramWebApp: isTelegram,
       hasUser: !!user,
@@ -380,7 +464,9 @@ export const telegramUtils = {
       isDevelopment: isDevelopment,
       hasTestParams: hasTestParams,
       hasForceTest: hasForceTest,
-      hasDebugMode: hasDebugMode
+      hasDebugMode: hasDebugMode,
+      hasTelegramUserAgent: hasTelegramUserAgent,
+      hasTelegramReferrer: hasTelegramReferrer
     };
   },
 
