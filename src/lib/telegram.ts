@@ -157,12 +157,21 @@ export const telegramUtils = {
     console.log('Search:', window.location.search);
     console.log('Hash:', window.location.hash);
     
-    // Анализируем все параметры URL
+    // Анализируем все параметры URL (search)
     const urlParams = new URLSearchParams(window.location.search);
-    console.log('All URL parameters:');
+    console.log('All URL parameters (search):');
     urlParams.forEach((value, key) => {
       console.log(`  ${key}: ${value}`);
     });
+    
+    // Анализируем все параметры URL (hash)
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      console.log('All URL parameters (hash):');
+      hashParams.forEach((value, key) => {
+        console.log(`  ${key}: ${value}`);
+      });
+    }
     
     // Проверяем наличие Telegram-специфичных параметров
     const telegramParams = [
@@ -178,13 +187,24 @@ export const telegramUtils = {
       'tgWebAppInitDataUnsafe'
     ];
     
-    console.log('Telegram-specific parameters:');
+    console.log('Telegram-specific parameters (search):');
     telegramParams.forEach(param => {
       const value = urlParams.get(param);
       if (value) {
         console.log(`  ${param}: ${value}`);
       }
     });
+    
+    console.log('Telegram-specific parameters (hash):');
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      telegramParams.forEach(param => {
+        const value = hashParams.get(param);
+        if (value) {
+          console.log(`  ${param}: ${value}`);
+        }
+      });
+    }
     
     // Проверяем объект window.Telegram
     console.log('window.Telegram object:', window.Telegram);
@@ -215,12 +235,16 @@ export const telegramUtils = {
     // Проверяем наличие объекта Telegram
     const hasTelegramObject = typeof window !== 'undefined' && !!window.Telegram?.WebApp;
     
-    // Проверяем наличие параметров Telegram в URL
+    // Проверяем наличие параметров Telegram в URL (search и hash)
     const hasTelegramParams = typeof window !== 'undefined' && 
       (window.location.search.includes('tgWebAppData') || 
        window.location.search.includes('tgWebAppVersion') ||
        window.location.search.includes('tgWebAppPlatform') ||
-       window.location.search.includes('tgWebAppThemeParams'));
+       window.location.search.includes('tgWebAppThemeParams') ||
+       window.location.hash.includes('tgWebAppData') ||
+       window.location.hash.includes('tgWebAppVersion') ||
+       window.location.hash.includes('tgWebAppPlatform') ||
+       window.location.hash.includes('tgWebAppThemeParams'));
     
     // Проверяем development режим несколькими способами
     const isDevelopment = 
@@ -236,15 +260,18 @@ export const telegramUtils = {
     
     // Проверяем тестовые параметры
     const hasTestParam = typeof window !== 'undefined' && 
-      window.location.search.includes('test_telegram=true');
+      (window.location.search.includes('test_telegram=true') ||
+       window.location.hash.includes('test_telegram=true'));
     
     // Проверяем принудительный режим тестирования
     const hasForceTest = typeof window !== 'undefined' && 
-      window.location.search.includes('force_telegram=true');
+      (window.location.search.includes('force_telegram=true') ||
+       window.location.hash.includes('force_telegram=true'));
     
     // Проверяем отладочный режим
     const hasDebugMode = typeof window !== 'undefined' && 
-      window.location.search.includes('debug=true');
+      (window.location.search.includes('debug=true') ||
+       window.location.hash.includes('debug=true'));
     
     // Дополнительные проверки для Telegram WebApp
     const hasTelegramUserAgent = typeof window !== 'undefined' && 
@@ -267,6 +294,7 @@ export const telegramUtils = {
       hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
       port: typeof window !== 'undefined' ? window.location.port : 'unknown',
       search: typeof window !== 'undefined' ? window.location.search : '',
+      hash: typeof window !== 'undefined' ? window.location.hash : '',
       importMetaEnv: {
         DEV: import.meta.env.DEV,
         MODE: import.meta.env.MODE,
@@ -277,12 +305,19 @@ export const telegramUtils = {
     return isTelegram;
   },
 
-  // Парсим данные пользователя из URL параметров
+  // Парсим данные пользователя из URL параметров (search и hash)
   parseUserFromUrl(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
     if (typeof window === 'undefined') return null;
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const tgWebAppData = urlParams.get('tgWebAppData');
+    // Сначала пробуем из search параметров
+    let urlParams = new URLSearchParams(window.location.search);
+    let tgWebAppData = urlParams.get('tgWebAppData');
+    
+    // Если нет в search, пробуем из hash
+    if (!tgWebAppData && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      tgWebAppData = hashParams.get('tgWebAppData');
+    }
     
     if (!tgWebAppData) return null;
     
@@ -308,9 +343,17 @@ export const telegramUtils = {
   getTestUserData(): { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } | null {
     if (typeof window === 'undefined') return null;
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const testUserId = urlParams.get('test_user_id');
-    const testUserName = urlParams.get('test_user_name') || 'Test User';
+    // Сначала пробуем из search параметров
+    let urlParams = new URLSearchParams(window.location.search);
+    let testUserId = urlParams.get('test_user_id');
+    let testUserName = urlParams.get('test_user_name') || 'Test User';
+    
+    // Если нет в search, пробуем из hash
+    if (!testUserId && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      testUserId = hashParams.get('test_user_id');
+      testUserName = hashParams.get('test_user_name') || 'Test User';
+    }
     
     // Работаем в любом режиме, если есть принудительный флаг или отладочный режим
     const isDevelopment = 
@@ -324,8 +367,11 @@ export const telegramUtils = {
         window.location.hostname.includes('127.0.0.1')
       ));
     
-    const hasForceTest = urlParams.get('force_telegram') === 'true';
-    const hasDebugMode = urlParams.get('debug') === 'true';
+    const hasForceTest = urlParams.get('force_telegram') === 'true' || 
+      (window.location.hash && new URLSearchParams(window.location.hash.substring(1)).get('force_telegram') === 'true');
+    
+    const hasDebugMode = urlParams.get('debug') === 'true' || 
+      (window.location.hash && new URLSearchParams(window.location.hash.substring(1)).get('debug') === 'true');
     
     if ((isDevelopment || hasForceTest || hasDebugMode) && testUserId) {
       return {
@@ -382,10 +428,18 @@ export const telegramUtils = {
       return initData;
     }
     
-    // Если нет initData из объекта, пробуем из URL
+    // Если нет initData из объекта, пробуем из URL (search и hash)
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tgWebAppData = urlParams.get('tgWebAppData');
+      // Сначала пробуем из search параметров
+      let urlParams = new URLSearchParams(window.location.search);
+      let tgWebAppData = urlParams.get('tgWebAppData');
+      
+      // Если нет в search, пробуем из hash
+      if (!tgWebAppData && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        tgWebAppData = hashParams.get('tgWebAppData');
+      }
+      
       if (tgWebAppData) {
         console.log('InitData from URL available');
         return decodeURIComponent(tgWebAppData);
@@ -394,10 +448,20 @@ export const telegramUtils = {
     
     // Возвращаем тестовые данные в любом режиме с принудительным флагом
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('force_telegram') === 'true' || 
-          urlParams.get('test_telegram') === 'true' ||
-          urlParams.get('debug') === 'true') {
+      let urlParams = new URLSearchParams(window.location.search);
+      let hasForceTest = urlParams.get('force_telegram') === 'true' || 
+        urlParams.get('test_telegram') === 'true' ||
+        urlParams.get('debug') === 'true';
+      
+      // Проверяем hash параметры
+      if (!hasForceTest && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        hasForceTest = hashParams.get('force_telegram') === 'true' || 
+          hashParams.get('test_telegram') === 'true' ||
+          hashParams.get('debug') === 'true';
+      }
+      
+      if (hasForceTest) {
         console.log('Using test initData');
         return 'test_init_data_for_development';
       }
@@ -415,6 +479,7 @@ export const telegramUtils = {
     userData: any;
     initData: string;
     urlParams: string;
+    urlHash: string;
     isDevelopment: boolean;
     hasTestParams: boolean;
     hasForceTest: boolean;
@@ -426,6 +491,7 @@ export const telegramUtils = {
     const user = this.getUser();
     const initData = this.getInitData();
     const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+    const urlHash = typeof window !== 'undefined' ? window.location.hash : '';
     
     const isDevelopment = 
       import.meta.env.DEV || 
@@ -440,13 +506,17 @@ export const telegramUtils = {
     
     const hasTestParams = typeof window !== 'undefined' && 
       (window.location.search.includes('test_telegram=true') || 
-       window.location.search.includes('test_user_id='));
+       window.location.search.includes('test_user_id=') ||
+       window.location.hash.includes('test_telegram=true') ||
+       window.location.hash.includes('test_user_id='));
     
     const hasForceTest = typeof window !== 'undefined' && 
-      window.location.search.includes('force_telegram=true');
+      (window.location.search.includes('force_telegram=true') ||
+       window.location.hash.includes('force_telegram=true'));
     
     const hasDebugMode = typeof window !== 'undefined' && 
-      window.location.search.includes('debug=true');
+      (window.location.search.includes('debug=true') ||
+       window.location.hash.includes('debug=true'));
     
     const hasTelegramUserAgent = typeof window !== 'undefined' && 
       navigator.userAgent.includes('TelegramWebApp');
@@ -461,6 +531,7 @@ export const telegramUtils = {
       userData: user,
       initData: initData,
       urlParams: urlParams,
+      urlHash: urlHash,
       isDevelopment: isDevelopment,
       hasTestParams: hasTestParams,
       hasForceTest: hasForceTest,

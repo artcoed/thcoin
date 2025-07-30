@@ -130,6 +130,7 @@ function RouletteRegistrationBlock() {
               User Data: {JSON.stringify(debugInfo.userData, null, 2)}<br/>
               InitData: {debugInfo.initData ? 'Available' : 'Not available'}<br/>
               URL Params: {debugInfo.urlParams}<br/>
+              URL Hash: {debugInfo.urlHash}<br/>
               <br/>
               <strong>Test URLs:</strong><br/>
               <a href="?test_telegram=true&test_user_id=123456789&test_user_name=Test%20User" 
