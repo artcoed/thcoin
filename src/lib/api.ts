@@ -56,7 +56,7 @@ export const apiClient = {
 
   // Получение пользователя
   async getUser(botId: number, telegramId: string): Promise<User | null> {
-    return api.post('getUser', { json: { botId, telegramId } }).json();
+    return api.post('getUser', { json: { input: { botId, telegramId } } }).json();
   },
 
   // Трейдинг
